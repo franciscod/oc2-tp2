@@ -129,25 +129,25 @@ int main(int argc, char* argv[]){
               uint8_t B2 = data2[pos+1];
               uint8_t A2 = data2[pos+0];
 
-              dataR[pos+3] = cmp(R1,R2,i,j,"R",&opt);
-              dataR[pos+2] = dataR[pos+3];
-              dataR[pos+1] = dataR[pos+3];
-              dataR[pos+0] = 255;
+              dataR[pos+0] = cmp(R1,R2,i,j,"R",&opt);
+              dataR[pos+1] = dataR[pos+0];
+              dataR[pos+2] = dataR[pos+30];
+              dataR[pos+3] = 255;
 
-              dataG[pos+3] = cmp(G1,G2,i,j,"G",&opt);
-              dataG[pos+2] = dataG[pos+3];
-              dataG[pos+1] = dataG[pos+3];
-              dataG[pos+0] = 255;
+              dataG[pos+0] = cmp(G1,G2,i,j,"G",&opt);
+              dataG[pos+1] = dataG[pos+0];
+              dataG[pos+2] = dataG[pos+0];
+              dataG[pos+3] = 255;
 
-              dataB[pos+3] = cmp(B1,B2,i,j,"B",&opt);
-              dataB[pos+2] = dataB[pos+3];
-              dataB[pos+1] = dataB[pos+3];
-              dataB[pos+0] = 255;
+              dataB[pos+0] = cmp(B1,B2,i,j,"B",&opt);
+              dataB[pos+1] = dataB[pos+0];
+              dataB[pos+2] = dataB[pos+0];
+              dataB[pos+3] = 255;
 
-              dataA[pos+3] = cmp(A1,A2,i,j,"A",&opt);
-              dataA[pos+2] = dataA[pos+3];
-              dataA[pos+1] = dataA[pos+3];
-              dataA[pos+0] = 255;
+              dataA[pos+0] = cmp(A1,A2,i,j,"A",&opt);
+              dataA[pos+1] = dataA[pos+0];
+              dataA[pos+2] = dataA[pos+0];
+              dataA[pos+3] = 255;
             }
         }
     } else if(c1 == 24) {

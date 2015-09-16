@@ -1,2 +1,5 @@
 build/*
 img/*diff?.bmp
+.DS_Store
+.directory
+
