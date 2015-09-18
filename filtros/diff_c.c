@@ -3,6 +3,7 @@
   - entender como funciona la matriz
   - como pintar los valores de cada canal
   - buscando max y finalmente escribiendola
+  - iterar correctamente y/x aprovechando la estructura mejora casi al 200% la performance
 */
 
 #include <stdlib.h>
@@ -13,8 +14,6 @@
 #define G 1
 #define R 2
 #define A 3
-
-#define pix(matrix, x, y, c) matrix[y][x*4+c]
 
 unsigned char max(unsigned char a, unsigned char b) {
 	return (a>=b ? a : b);
@@ -36,17 +35,17 @@ void diff_c (
 
 	unsigned char n_inf;
 
-	for (int x = 0; x < m; x++) {
-		for (int y = 0; y < n; y++) {
+	for (int y = 0; y < n; y++) {
+		for (int x = 0; x < m; x++) {
 
-			n_inf = max(	abs(pix(src_matrix, x, y, R) - pix(src_2_matrix, x, y, R)),
+			n_inf = max(	abs(src_matrix[y][x*4+R] - src_2_matrix[y][x*4+R]),
 						max(
-							abs(pix(src_matrix, x, y, G) - pix(src_2_matrix, x, y, G)),
-							abs(pix(src_matrix, x, y, B) - pix(src_2_matrix, x, y, B))
+							abs(src_matrix[y][x*4+G] - src_2_matrix[y][x*4+G]),
+							abs(src_matrix[y][x*4+B] - src_2_matrix[y][x*4+B])
 					));
 
-			pix(dst_matrix, x, y, R) = pix(dst_matrix, x, y, G) = pix(dst_matrix, x, y, B) = n_inf;
-			pix(dst_matrix, x, y, A) = 255;
+			dst_matrix[y][x*4+R] = dst_matrix[y][x*4+G] = dst_matrix[y][x*4+B] = n_inf;
+			dst_matrix[y][x*4+A] = 255;
 		}
 	}
 }
