@@ -1,59 +1,25 @@
-
 #include <stdlib.h>
 #include <math.h>
 #include "../tp2.h"
 
-void diff_c (
-	unsigned char *src,         // Primera imagen.
-	unsigned char *src_2,       // Segunda imagen
-	unsigned char *dst,         // Destino
-	int m,                      // Filas
-	int n,                      // Columnas
-	int src_row_size,           // Tamaño de imagen 1
-	int src_2_row_size,         // Tamaño de imagen 2
-	int dst_row_size            // Tamaño destino
-) {
+void diff_c (unsigned char *src, unsigned char *src_2, unsigned char *dst, int m, int n, int src_row_size, int src_2_row_size, int dst_row_size){
 	unsigned char (*src_matrix)[src_row_size] = (unsigned char (*)[src_row_size]) src;
 	unsigned char (*src_2_matrix)[src_2_row_size] = (unsigned char (*)[src_2_row_size]) src_2;
 	unsigned char (*dst_matrix)[dst_row_size] = (unsigned char (*)[dst_row_size]) dst;
 
-
-//////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// INTENTO 1 //////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
-    for (i = 0; i < src_row_size; i++){
-        dst_matrix[i] = src_matrix[i] - src_2_matrix[i];
+    for (int y = 0; y < m; y++){
+        for (int x = 0; x < 4*n; x+=4){
+            int maximo = max(
+                             max(
+                                 abs(src_matrix[y][x] - src_2_matrix[y][x]),
+                                 abs(src_matrix[y][x+1] - src_2_matrix[y][x+1]),
+                                 abs(src_matrix[y][x+2] - src_2_matrix[y][x+2])
+                                 )
+                             );
+            dst_matrix[y][x+0] = maximo;
+            dst_matrix[y][x+1] = maximo;
+            dst_matrix[y][x+2] = maximo;
+            dst_matrix[y][x+3] = 255;
+        }
     }
-    for (i = 0; i < src_row_size; i+=4){
-        int k = max(max(dst_matrix[i], dst_matrix[i+1]), dst_matrix[i+2]);
-        dst_matrix[i] = k;
-        dst_matrix[i+1] = k;
-        dst_matrix[i+2] = k;
-        dst_matrix[i+3] = 255;
-    }
-
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
-//////////////////////////////////////////////////////////////////////////////
-///////////////////////////////// INTENTO 2 //////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-/*
-		for (i = 0; i < m*n; i++){
-				dst_matrix[i] = src_matrix[i] - src_2_matrix[i];
-		}
-		for (i = 0; i < m*n; i+=4){
-				int k = max(max(dst_matrix[i], dst_matrix[i+1]), dst_matrix[i+2]);
-        dst_matrix[i] = k;
-        dst_matrix[i+1] = k;
-        dst_matrix[i+2] = k;
-        dst_matrix[i+3] = 255;
-		}
-*/
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////
-
 }
