@@ -5,7 +5,8 @@ global diff_asm
 section .data
 
 	; Mascara para poner el resultado del maximo de las componentes en todas ellas
-	mask db 15,15,15,15,11,11,11,11,7,7,7,7,3,3,3,3
+	;mask db 15,15,15,15,11,11,11,11,7,7,7,7,3,3,3,3
+	mask db 0,0,0,0,4,4,4,4,8,8,8,8,12,12,12,12
 
 section .text
 
@@ -51,8 +52,10 @@ diff_asm:
 		; Desempaqueto los pixeles (cada componente pasa a ocupar una word) para poder hacer la resta sin perder informacion
 		movups xmm3, xmm1
 		movups xmm4, xmm2
+		
 		punpcklbw xmm1, xmm5
 		punpckhbw xmm3, xmm5
+		
 		punpcklbw xmm2, xmm5
 		punpckhbw xmm4, xmm5
 
@@ -71,9 +74,9 @@ diff_asm:
 		movups xmm2, xmm1
 		
 		; Comparo el canal R con el canal G y luego el resultado lo comparo con el canal B
-		pslldq xmm2, 1		; Me muevo un byte a la izquierda
+		psrldq xmm2, 1		; Me muevo un byte a la derecha
 		pmaxub xmm1, xmm2
-		pslldq xmm2, 1		; Me muevo un byte a la izquierda
+		psrldq xmm2, 1		; Me muevo un byte a la derecha
 		pmaxub xmm1, xmm2
 
 		; Pongo el maximo que hasta ahora tengo en el canal R de cada pixel en todos los canales
@@ -94,6 +97,5 @@ diff_asm:
 		add rsi, 16
 		
 		; Repito lo mismo para todos los pixeles de mis imagenes
-		dec rcx
-	jnz .ciclo
+		loop .ciclo
 	ret
