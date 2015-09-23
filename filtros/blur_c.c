@@ -8,6 +8,8 @@ const int OFFSET_GREEN = 1;
 const int OFFSET_RED = 2;
 const int OFFSET_ALPHA = 3;
 
+#define M_PI 3.14159265358979323846
+
 double G_sigma(int x, int y, float sigma){
     return(exp(-((x * x + y * y) / (2 * sigma * sigma))) / (2 * M_PI * sigma * sigma));
 }
