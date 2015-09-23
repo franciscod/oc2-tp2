@@ -14,9 +14,7 @@ void calcular_matriz(float *matriz, int r, float s){
     for(int j = 0; j < ((2*r)+1); j++){
         for(int i = 0; i < ((2*r)+1); i++){
             matriz[OFFSET] = (double) (aux * exp(-(((j-centro)*(j-centro)+(i-centro)*(i-centro))/aux2)));
-            printf("%.4f ", matriz[OFFSET]);
         }
-printf("\n");
     }
 }
 
@@ -31,4 +29,3 @@ void blur_c(unsigned char *src, unsigned char *dst, int cols, int filas, float s
 
     free(convol_matrix);
 }
-
