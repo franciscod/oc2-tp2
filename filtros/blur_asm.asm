@@ -28,29 +28,41 @@ blur_asm:
     ; rdi = puntero matriz entrada
     ; rsi = puntero matriz salida
     ; rdx = filas
-    ; ; rcx = columnas
-    ; ; xmm0 = sigma
-    ; ; r8 = radio
+    ; rcx = columnas
+    ; xmm0 = sigma
+    ; r8 = radio
 
-    ; mov r12, rdi                                    ; r12 = puntero matriz entrada
-    ; mov r13, rsi                                    ; r13 = puntero matriz salida
-    ; mov r14, rdx                                    ; r14 = filas
-    ; mov r15, rcx                                    ; r15 = columnas
-    ; mov rbx, r8                                     ; rbx = radio
-    ; ; push xmm0                                       ; Guardo sigma
+    push rbp
+    mov rbp, rsp
+    push r12
+    push r13
+    push r14
+    push r15
+    push rbx
+    sub rsp, 8
 
-    ; ; Calculo el tamaño en bytes de la matriz = (radio * 2 + 1)^2 * tamaño_double
-    ; mov rdi, rbx
-    ; add rdi, rdi
-    ; inc rdi
-    ; imul rdi, rdi
-    ; imul rdi, DOUBLE_SIZE
+    mov r12, rdi                                    ; r12 = puntero matriz entrada
+    mov r13, rsi                                    ; r13 = puntero matriz salida
+    mov r14, rdx                                    ; r14 = filas
+    mov r15, rcx                                    ; r15 = columnas
+    mov rbx, r8                                     ; rbx = radio
 
-    ; mov rsi, rdi
-    ; mov rdi, msg
-    ; mov rax, 1
-    ; call printf
+    ; Calculo el tamaño en bytes de la matriz = (radio * 2 + 1)^2 * tamaño_double
+    mov rdi, rbx
+    imul rdi, 2
+    inc rdi
+    mov r10, rdi                                    ; solo porque no funciona imul rdi, rdi
+    imul rdi, r10
+    imul rdi, DOUBLE_SIZE
 
-    ; call malloc
+    call malloc
+
+    add rsp, 8
+    pop rbx
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbp
 
     ret
