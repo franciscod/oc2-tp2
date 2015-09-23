@@ -13,10 +13,10 @@ void blur_c(unsigned char *src, unsigned char *dst, int cols, int filas, float s
 
     double aux2 = (2*sigma*sigma);
     double aux = (double)(1/(M_PI*aux2));
-    for(int j = 0; j < 2*radius+1; j++){
-        for(int i = 0; i < 2*radius+1; i++){
-            matriz[j][i] = (double) (aux * exp(-(j*j+i*i)/aux2));
-            printf("%.4f ", matriz[0][0]);
+    for(int j = 0; j <= 2*radius; j++){
+        for(int i = 0; i <= 2*radius; i++){
+            convol_matrix[j][i] = (double) (aux * exp(-(((j-radius)*(j-radius)+(i-radius)*(i-radius))/aux2)));
+            printf("%.4f ", convol_matrix[j][i]);
         }
         printf("\n");
     }
