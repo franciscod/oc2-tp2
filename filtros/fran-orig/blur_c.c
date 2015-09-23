@@ -8,7 +8,7 @@
 #include "../tp2.h"
 
 // arranque 19:31
-// float
+// pare 22:00, malditas coordenadas del tamaño de tmp invertidas y doble resta de r - i
 
 
 #define B 0
