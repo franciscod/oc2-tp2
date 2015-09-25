@@ -4,3 +4,8 @@ img/*diff?.bmp
 .directory
 *.gch
 
+filtros/blur_asm.asm
+filtros/blur_c.c
+filtros/diff_asm.asm
+filtros/diff_c.c
+
