@@ -2,7 +2,7 @@ default rel
 global _blur_asm
 global blur_asm
 
-extern malloc
+extern malloc, free
 extern printf
 extern G_sigma
 extern imprimir_mat
@@ -109,7 +109,7 @@ blur_asm:
             imul r11, r10
             add r11, r9                             ; r11 = fila * columnas + columna (indice)
 
-            movdqu [rax + r11 * FLOAT_SIZE], xmm0  ; Asigno el resultado de G_sigma a la posicion correspondiente de la matriz
+            movd [rax + r11 * FLOAT_SIZE], xmm0  ; Asigno el resultado de G_sigma a la posicion correspondiente de la matriz
 
             movdqu xmm0, [rsp]                      ; xmm0 = sigma (Lo recupero de la pila)
             add rsp, 16
@@ -198,7 +198,9 @@ blur_asm:
 
 
     .fin:
-
+    mov rdi, rax
+    call free
+    
     pop rbx
     pop r15
     pop r14
