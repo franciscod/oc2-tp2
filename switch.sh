@@ -17,11 +17,11 @@ for f in blur_c.c blur_asm.asm diff_c.c diff_asm.asm; do
 	if [ ! -f ./filtros/$SWITCH_DIR/$f ]; then
 		# pone la implementacion vacia
 		# ln -s vacia/$f filtros/$f
-		cp vacia/$f filtros/$f
+		cp filtros/vacia/$f filtros/$f
 	else
 		# si esta implementado en SWITCH_DIR, lo pone
 		# ln -s $SWITCH_DIR/$f filtros/$f
-		cp $SWITCH_DIR/$f filtros/$f
+		cp filtros/$SWITCH_DIR/$f filtros/$f
 	fi
 done
 
