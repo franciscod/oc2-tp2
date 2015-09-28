@@ -135,12 +135,25 @@ blur_asm:
     ; call imprimir_mat
     ; pop rax
 
+    ; Seteo unas mascaras para separar las componentes
+    movdqu xmm7, [mask_blue]            
+    movdqu xmm8, [mask_green]
+    movdqu xmm9, [mask_red]
+
+    ; Voy a usar estos registros para acumular los productos de la convolucion, uno por cada componente
+    pxor xmm10, xmm10                               ; xmm10 = acumulador azul
+    pxor xmm11, xmm11                               ; xmm11 = acumulador verde
+    pxor xmm12, xmm12                               ; xmm12 = acumulador rojo
+
     ; Recorro la imagen
     mov rsi, r10
     imul rsi, r10                                   ; rsi = (radio * 2 + 1)^2 = cantidad de pixeles
+
     mov r8, rbx                                     ; r8 = indice fila empezando por radio
+    
     mov r10, r14
     sub r10, rbx                                    ; r10 = filas - radio
+    
     .filas_imagen: 
         cmp r8, r10
         je .fin
@@ -171,9 +184,6 @@ blur_asm:
                 movups xmm1, [r12]                  ; xmm1 = vector imagen entrada
 
                 ; Agrupo por componente (todos los azules por un lado...) usando un shuffle
-                movdqu xmm7, [mask_blue]            
-                movdqu xmm8, [mask_green]
-                movdqu xmm9, [mask_red]
                 
                 movups xmm2, xmm1                   ; xmm2 va a contener solo las componentes azules
                 movups xmm3, xmm1                   ; xmm3 va a contener solo las componentes verdes
@@ -183,14 +193,22 @@ blur_asm:
                 pshufb xmm3, xmm8                   ; xmm3 = G0 | 0 | 0 | 0 | G1 | 0 | 0 | 0 | G2 | 0 | 0 | 0 | G3 | 0 | 0 | 0
                 pshufb xmm4, xmm9                   ; xmm4 = R0 | 0 | 0 | 0 | R1 | 0 | 0 | 0 | R2 | 0 | 0 | 0 | R3 | 0 | 0 | 0
 
-                ; Convierto a float
+                ; Convierto a float (hay alguna mierda de endianess dando vuelta que me dan ganas de..)
                 cvtdq2ps xmm2, xmm2
                 cvtdq2ps xmm3, xmm3
                 cvtdq2ps xmm4, xmm4
 
                 ; Voy multiplicando 4 vs 4 entre convolucion y componente k de cada pixel
+                mulps xmm2, xmm0
+                mulps xmm3, xmm0
+                mulps xmm4, xmm0
+
                 ; Me quedan 4 vectores, uno con cada componente multiplicada
                 ; Acumulo cada uno en un xmm que cuando termine voy a shiftear y sumar
+                addps xmm10, xmm2
+                addps xmm11, xmm3
+                addps xmm12, xmm4
+
                 ; Termino la sumatoria y me quedan 3 xmm (el alpha ya se que es 255) con los valores
                 ; Tengo que pasarlos a byte y asignarlos a la imagen destino
 
