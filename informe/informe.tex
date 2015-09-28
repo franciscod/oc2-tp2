@@ -1,0 +1,75 @@
+% Clase y configuracion de tipo de documento
+\documentclass[10pt,a4paper,spanish]{article}
+% Inclusion de paquetes
+\usepackage{a4wide}
+\usepackage{amsmath, amscd, amssymb, amsthm, latexsym}
+\usepackage[spanish]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[width=15.5cm, left=3cm, top=2.5cm, height= 24.5cm]{geometry}
+\usepackage{fancyhdr}
+\pagestyle{fancyplain}
+\usepackage{listings}
+\usepackage{enumerate}
+\usepackage{xspace}
+\usepackage{longtable}
+\usepackage{caratula}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\graphicspath{{img/}}
+
+% Encabezado
+\lhead{Organización del Computador II}
+\rhead{Grupo: Fuga Villera Nro. 2}
+% Pie de pagina
+\renewcommand{\footrulewidth}{0.4pt}
+\lfoot{Facultad de Ciencias Exactas y Naturales}
+\rfoot{Universidad de Buenos Aires}
+
+\begin{document}
+
+% Datos de caratula
+\materia{Organización del Computador II}
+\titulo{Trabajo Práctico 2: Experimentos}
+%\subtitulo{}
+\grupo{
+	Grupo: Fuga Villera Nro. 2
+	\href{https://www.youtube.com/watch?v=wBNjDRXJNyY}{
+		\includegraphics[height=0.4cm,keepaspectratio]{YouTube-icon-full_color.png}
+	}
+}
+
+\integrante{Gabriel Matles}{397/12}{gabriel29m@gmail.com}
+\integrante{Manuel Mena}{313/14}{manuelmena1993@gmail.com}
+\integrante{Francisco Demartino}{348/14}{demartino.francisco@gmail.com}
+
+\maketitle
+
+\newpage
+
+% Para crear un indice
+%\tableofcontents
+
+% Forzar salto de pagina
+\clearpage
+
+% Pueden modularizar el documento incluyendo otros .tex
+% \include{observaciones}
+
+\section{Observaciones}
+
+	\begin{enumerate}
+		\item un item
+		\item otro item
+	\end{enumerate}
+
+% Otro salto de pagina
+% \newpage
+
+\section{Resolución}
+
+
+% \subsection{Ejercicio X}
+
+\subsection{Auxiliares}
+
+\end{document}
