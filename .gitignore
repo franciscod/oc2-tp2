@@ -2,6 +2,10 @@ build/*
 img/*diff?.bmp
 data/*
 informe/img/gen/*
+informe/*.pdf
+informe/*.out
+informe/*.aux
+informe/*.log
 
 .DS_Store
 .directory
