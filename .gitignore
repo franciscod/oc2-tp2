@@ -1,5 +1,8 @@
 build/*
 img/*diff?.bmp
+data/*
+informe/img/gen/*
+
 .DS_Store
 .directory
 *.gch
