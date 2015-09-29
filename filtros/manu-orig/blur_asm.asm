@@ -147,7 +147,7 @@ blur_asm:
 
     ; Recorro la imagen
     mov rsi, r10
-    imul rsi, r10                                   ; rsi = (radio * 2 + 1)^2 = cantidad de pixeles
+    imul rsi, r10                                   ; rsi = (radio * 2 + 1)^2 = cantidad de pixeles de alrededor
 
     mov r8, rbx                                     ; r8 = indice fila empezando por radio
     
@@ -176,6 +176,12 @@ blur_asm:
             xor rdi, rdi                            ; rdi = indice de convolucion
             .recorer_conv:
             
+                ; Tengo que tener en cuenta en que posicion estoy por el ultimo pixel
+                mov rdx, rsi
+                sub rdx, rdi                        ; rdx = cantidad de pixeles - indice
+                cmp rdx, 1
+                je .ultimo_pixel
+
                 ; Agarro de a 4 floats de la matriz de convolucion
                 movups xmm0, [rax]                  ; xmm0 = vector convolucion
 
@@ -201,12 +207,6 @@ blur_asm:
                 mulps xmm3, xmm0
                 mulps xmm4, xmm0
 
-                ; Tengo que tener en cuenta en que posicion estoy por el ultimo pixel
-                mov rdx, rsi
-                sub rdx, rdi                        ; rdx = cantidad de pixeles - indice
-                cmp rdx, 1
-                je .ultimo_pixel
-
                 ; Me quedan 4 vectores, uno con cada componente multiplicada
                 ; Acumulo cada uno en un xmm que cuando termine voy a shiftear y sumar
                 addps xmm10, xmm2
@@ -222,15 +222,15 @@ blur_asm:
             .ultimo_pixel:
             
             ; Shifteo para acomodar el ultimo pixel
-            movdqu xmm5, [mask_last_pixel]
-            andps xmm2, xmm5
-            andps xmm3, xmm5
-            andps xmm4, xmm5
+            ; movdqu xmm5, [mask_last_pixel]
+            ; andps xmm2, xmm5
+            ; andps xmm3, xmm5
+            ; andps xmm4, xmm5
 
-            ; Acumulo
-            addps xmm10, xmm2
-            addps xmm11, xmm3
-            addps xmm12, xmm4
+            ; ; Acumulo
+            ; addps xmm10, xmm2
+            ; addps xmm11, xmm3
+            ; addps xmm12, xmm4
 
             ; Sumo las sumatorias parciales de cada registro
             haddps xmm10, xmm10
@@ -266,9 +266,8 @@ blur_asm:
             mov rdi, r8
             imul rdi, r15
             add rdi, r9                             ; rdi = fila * columnas + columna
-            imul rdi, 16                            ; 
 
-            movups [r13 + rdi], xmm10
+            movups [r13 + rdi * 4], xmm10
 
             pop rax
             pop r12
