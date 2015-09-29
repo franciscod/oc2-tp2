@@ -13,10 +13,11 @@ extern imprimir_mat
 
 section .data
 
-    msg:        db '%f', 10
-    mask_blue:  db 0x0C, 0xFF, 0xFF, 0xFF, 0x08, 0xFF, 0xFF, 0xFF, 0x04, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF 
-    mask_green: db 0x0D, 0xFF, 0xFF, 0xFF, 0x09, 0xFF, 0xFF, 0xFF, 0x05, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF
-    mask_red:   db 0x0E, 0xFF, 0xFF, 0xFF, 0x0A, 0xFF, 0xFF, 0xFF, 0x06, 0xFF, 0xFF, 0xFF, 0x02, 0xFF, 0xFF, 0xFF
+    msg:                db '%f', 10
+    mask_blue:          db 0x0C, 0xFF, 0xFF, 0xFF, 0x08, 0xFF, 0xFF, 0xFF, 0x04, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF 
+    mask_green:         db 0x0D, 0xFF, 0xFF, 0xFF, 0x09, 0xFF, 0xFF, 0xFF, 0x05, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF
+    mask_red:           db 0x0E, 0xFF, 0xFF, 0xFF, 0x0A, 0xFF, 0xFF, 0xFF, 0x06, 0xFF, 0xFF, 0xFF, 0x02, 0xFF, 0xFF, 0xFF
+    mask_last_pixel:    dd 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000
 
 
 section .text
@@ -171,12 +172,6 @@ blur_asm:
             xor rdi, rdi                            ; rdi = indice de convolucion
             .recorer_conv:
             
-                ; Tengo que tener en cuenta en que posicion estoy por la no-divisibilidad
-                mov rdx, rsi
-                sub rdx, rdi                        ; rdx = cantidad de pixeles - indice
-                cmp rdx, 4
-                jl .ultimos_pixeles
-
                 ; Agarro de a 4 floats de la matriz de convolucion
                 movups xmm0, [rax]                  ; xmm0 = vector convolucion
 
@@ -184,7 +179,6 @@ blur_asm:
                 movups xmm1, [r12]                  ; xmm1 = vector imagen entrada
 
                 ; Agrupo por componente (todos los azules por un lado...) usando un shuffle
-                
                 movups xmm2, xmm1                   ; xmm2 va a contener solo las componentes azules
                 movups xmm3, xmm1                   ; xmm3 va a contener solo las componentes verdes
                 movups xmm4, xmm1                   ; xmm4 va a contener solo las componentes rojas
@@ -203,14 +197,17 @@ blur_asm:
                 mulps xmm3, xmm0
                 mulps xmm4, xmm0
 
+                ; Tengo que tener en cuenta en que posicion estoy por el ultimo pixel
+                mov rdx, rsi
+                sub rdx, rdi                        ; rdx = cantidad de pixeles - indice
+                cmp rdx, 1
+                je .ultimo_pixel
+
                 ; Me quedan 4 vectores, uno con cada componente multiplicada
                 ; Acumulo cada uno en un xmm que cuando termine voy a shiftear y sumar
                 addps xmm10, xmm2
                 addps xmm11, xmm3
                 addps xmm12, xmm4
-
-                ; Termino la sumatoria y me quedan 3 xmm (el alpha ya se que es 255) con los valores
-                ; Tengo que pasarlos a byte y asignarlos a la imagen destino
 
                 ; Avanzo de a 4 pixeles = 16 bytes
                 add r12, 16
@@ -218,7 +215,33 @@ blur_asm:
                 add rdi, 4
                 jmp .recorer_conv
 
-            .ultimos_pixeles:
+            .ultimo_pixel:
+            
+            ; Shifteo para acomodar el ultimo pixel
+            movdqu xmm5, [mask_last_pixel]
+            andps xmm2, xmm5
+            andps xmm3, xmm5
+            andps xmm4, xmm5
+
+            ; Acumulo
+            addps xmm10, xmm2
+            addps xmm11, xmm3
+            addps xmm12, xmm4
+
+            ; Sumo las sumatorias parciales de cada registro
+            haddps xmm10, xmm10
+            haddps xmm10, xmm10
+            haddps xmm11, xmm11
+            haddps xmm11, xmm11
+            haddps xmm12, xmm12
+            haddps xmm12, xmm12
+
+            ; Termino la sumatoria y me quedan 3 xmm (el alpha ya se que es 255) con los valores
+            ; Los redondeo a byte y asigno a la imagen destino
+            cvtps2dq xmm10, xmm10
+            cvtps2dq xmm11, xmm11
+            cvtps2dq xmm12, xmm12
+            
 
             pop rax
             pop r12
@@ -234,6 +257,7 @@ blur_asm:
 
 
     .fin:
+    ; Libero la matriz de convolucion
     mov rdi, rax
     call free
     
