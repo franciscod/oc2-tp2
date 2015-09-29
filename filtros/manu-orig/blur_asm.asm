@@ -21,6 +21,7 @@ section .data
     mask_first:         dd 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF
     mask_second:        dd 0x00000000, 0x00000000, 0xFFFFFFFF, 0x00000000
     mask_third:         dd 0x00000000, 0xFFFFFFFF, 0x00000000, 0x00000000
+    aplha_255:          db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00
 
 
 section .text
@@ -247,10 +248,10 @@ blur_asm:
             cvtps2dq xmm12, xmm12
 
             ; Dejo solo el primer valor en cada registro
-            movdqu xmm7, [mask_first]
-            andps xmm10, xmm7
-            andps xmm11, xmm7
-            andps xmm12, xmm7
+            movdqu xmm5, [mask_first]
+            andps xmm10, xmm5
+            andps xmm11, xmm5
+            andps xmm12, xmm5
 
             ; Acomodo el valor en la posicion que corresponda al color
             psrldq xmm10, 12
@@ -258,9 +259,10 @@ blur_asm:
             psrldq xmm12, 4
             
             ; Junto los componentes
+            movdqu xmm13, [aplha_255]
             addps xmm10, xmm11
             addps xmm10, xmm12
-            ; Me falta APLHA!
+            addps xmm10, xmm13
             
             ; xmm10 tiene mi pixel. Lo meto en la imagen destino
             mov rdi, r8
