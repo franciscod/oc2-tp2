@@ -18,6 +18,9 @@ section .data
     mask_green:         db 0x0D, 0xFF, 0xFF, 0xFF, 0x09, 0xFF, 0xFF, 0xFF, 0x05, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF
     mask_red:           db 0x0E, 0xFF, 0xFF, 0xFF, 0x0A, 0xFF, 0xFF, 0xFF, 0x06, 0xFF, 0xFF, 0xFF, 0x02, 0xFF, 0xFF, 0xFF
     mask_last_pixel:    dd 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000
+    mask_first:         dd 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF
+    mask_second:        dd 0x00000000, 0x00000000, 0xFFFFFFFF, 0x00000000
+    mask_third:         dd 0x00000000, 0xFFFFFFFF, 0x00000000, 0x00000000
 
 
 section .text
@@ -141,10 +144,6 @@ blur_asm:
     movdqu xmm8, [mask_green]
     movdqu xmm9, [mask_red]
 
-    ; Voy a usar estos registros para acumular los productos de la convolucion, uno por cada componente
-    pxor xmm10, xmm10                               ; xmm10 = acumulador azul
-    pxor xmm11, xmm11                               ; xmm11 = acumulador verde
-    pxor xmm12, xmm12                               ; xmm12 = acumulador rojo
 
     ; Recorro la imagen
     mov rsi, r10
@@ -168,6 +167,11 @@ blur_asm:
 
             push r12                                ; Me guardo la dir de la imagen de entrada
             push rax                                ; Me guardo la dir de la mat de convolucion
+
+            ; Voy a usar estos registros para acumular los productos de la convolucion, uno por cada componente
+            pxor xmm10, xmm10                               ; xmm10 = acumulador azul
+            pxor xmm11, xmm11                               ; xmm11 = acumulador verde
+            pxor xmm12, xmm12                               ; xmm12 = acumulador rojo
 
             xor rdi, rdi                            ; rdi = indice de convolucion
             .recorer_conv:
@@ -241,12 +245,34 @@ blur_asm:
             cvtps2dq xmm10, xmm10
             cvtps2dq xmm11, xmm11
             cvtps2dq xmm12, xmm12
+
+            ; Dejo solo el primer valor en cada registro
+            movdqu xmm7, [mask_first]
+            andps xmm10, xmm7
+            andps xmm11, xmm7
+            andps xmm12, xmm7
+
+            ; Acomodo el valor en la posicion que corresponda al color
+            psrldq xmm10, 12
+            psrldq xmm11, 8
+            psrldq xmm12, 4
             
+            ; Junto los componentes
+            addps xmm10, xmm11
+            addps xmm10, xmm12
+            ; Me falta APLHA!
+            
+            ; xmm10 tiene mi pixel. Lo meto en la imagen destino
+            mov rdi, r8
+            imul rdi, r15
+            add rdi, r9                             ; rdi = fila * columnas + columna
+            imul rdi, 16                            ; 
+
+            movups [r13 + rdi], xmm10
 
             pop rax
             pop r12
             
-
             inc r9
             jmp .columnas_imagen
 
