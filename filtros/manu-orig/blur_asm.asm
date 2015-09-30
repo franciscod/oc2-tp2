@@ -162,12 +162,21 @@ blur_asm:
         mov r9, rbx                                 ; r9 = indice columna empezando por radio
         mov r11, r15
         sub r11, rbx                                ; r11 = columnas - radio
+
         .columnas_imagen:
             cmp r9, r11
             je .fin_columnas_imagen
 
             push r12                                ; Me guardo la dir de la imagen de entrada
             push rax                                ; Me guardo la dir de la mat de convolucion
+            mov rsi, r12
+
+            ; Llevo el puntero de la entrada a donde me interesa
+            mov rdi, r8
+            imul rdi, r15
+            add rdi, r9            
+            imul rdi, 16                            ; rdi = (fila * columnas + columna) * 16   
+            add r12, rdi
 
             ; Voy a usar estos registros para acumular los productos de la convolucion, uno por cada componente
             pxor xmm10, xmm10                               ; xmm10 = acumulador azul
@@ -228,7 +237,7 @@ blur_asm:
             ; andps xmm3, xmm5
             ; andps xmm4, xmm5
 
-            ; ; Acumulo
+            ; Acumulo
             ; addps xmm10, xmm2
             ; addps xmm11, xmm3
             ; addps xmm12, xmm4
@@ -263,6 +272,11 @@ blur_asm:
             addps xmm10, xmm11
             addps xmm10, xmm12
             addps xmm10, xmm13
+
+            ; Empaqueto
+            pxor xmm13, xmm13
+            packusdw xmm10, xmm13
+            packuswb xmm10, xmm13
             
             ; xmm10 tiene mi pixel. Lo meto en la imagen destino
             mov rdi, r8
