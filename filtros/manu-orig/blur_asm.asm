@@ -10,9 +10,12 @@ extern imprimir_mat
 %define FLOAT_SIZE 4
 %define PI         3.14159265358979323846
 
+%define DEBUG 		1
+
 
 section .data
 
+    format_int:         db '%i', 10, 0
     msg:                db '%f', 10
     mask_blue:          db 0x0C, 0xFF, 0xFF, 0xFF, 0x08, 0xFF, 0xFF, 0xFF, 0x04, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF 
     mask_green:         db 0x0D, 0xFF, 0xFF, 0xFF, 0x09, 0xFF, 0xFF, 0xFF, 0x05, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF
@@ -35,7 +38,6 @@ section .text
 
 _blur_asm:
 blur_asm:
-
     ; rdi = puntero matriz entrada
     ; rsi = puntero matriz salida
     ; rdx = filas
@@ -43,21 +45,145 @@ blur_asm:
     ; xmm0 = sigma
     ; r8 = radio
 
-    push rbp
-    mov rbp, rsp
+	push rbp
+	mov rbp, rsp
     push r12
     push r13
     push r14
     push r15
     push rbx
+	sub rsp, 8
+
+    xor r14, r14
+    xor r15, r15
+    xor rbx, rbx
 
     mov r12, rdi                                    ; r12 = puntero matriz entrada
     mov r13, rsi                                    ; r13 = puntero matriz salida
-    xor r14, r14
     mov r14d, edx                                   ; r14 = filas
-    xor r15, r15
     mov r15d, ecx                                   ; r15 = columnas
+    mov ebx, r8d                                    ; rbx = radio
+
+	mov rdi, rbx
+	; el sigma ya esta en xmm0
+	call generar_matriz_convolucion
+	
+	;recorro filas adentro del marquito
+		;recorro columnas adentro del marquito
+    ;	call calcular_pixel
+
+	add rsp, 8
+    pop rbx
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+	pop rbp
+	ret
+
+%define SIGMA_PILA rbp-16
+generar_matriz_convolucion:
+
+    ; rdi = radio
+    ; xmm0 = sigma
+
+	push rbp
+	mov rbp, rsp
+	sub rsp, 24
+	movdqu [SIGMA_PILA], xmm0
+	push rbx
+	push r12	; 2r+1
+	push r13    ; radio
+	push r14    ; indice y (filas)
+	push r15    ; indice x (columnas)
+	mov r13, rdi
+
+    ; Calculo el tamaño en bytes de la matriz = (radio * 2 + 1)² * tamaño_float
+    imul rdi, 2
+    inc rdi
+	mov r12, rdi
+    ; solo porque no funciona imul rdi, rdi. r10 = (radio * 2) + 1
+    imul rdi, r12
+    imul rdi, FLOAT_SIZE
+
+    ; Reservo memoria para la matriz de convolucion
+    call malloc                                     
+	mov rbx, rax	; rbx = puntero a la matriz de convolucion
+	
+    
+    ; Genero la matriz de convolucion
+
+    xor r14, r14                                      ; r15 = indice fila
+    .filas:
+        cmp r14, r12
+        je .fin_convolucion
+
+        xor r15, r15                                  ; r15 = indice columna
+        .columnas:
+            cmp r15, r12
+            je .fin_fila
+
+
+            mov rdi, r13
+            sub rdi, r14                             ; rdi = y = radio - fila
+
+            mov rsi, r13
+            sub rsi, r15                             ; rsi = x = radio - columna
+
+			movdqu xmm0, [SIGMA_PILA]				; xmm0 = sigma
+            call G_sigma							; xmm0 = coeficiente
+
+            mov r11, r14  ; r11 = y
+            imul r11, r12 ; r11 = y * (2r+1)
+            add r11, r15                            ; r11 = y * filas + x (indice)
+
+            movd [rbx + r11 * FLOAT_SIZE], xmm0  ; Asigno el resultado de G_sigma a la posicion correspondiente de la matriz
+
+            inc r15
+            jmp .columnas
+
+        .fin_fila:
+
+        inc r14
+        jmp .filas
+
+	.fin_convolucion:
+
+	%ifdef DEBUG
+			mov rdi, rbx
+			mov rsi, r12
+			mov rdx, r12
+			call imprimir_mat
+	%endif
+
+	mov rax, rbx ; devuelve base de la matriz
+
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop rbx
+	add rsp, 24
+	pop rbp
+	ret
+
+
+viejito:
+    ; rdi = puntero matriz entrada
+    ; rsi = puntero matriz salida
+    ; rdx = filas
+    ; rcx = columnas
+    ; xmm0 = sigma
+    ; r8 = radio
+
+    xor r14, r14
+    xor r15, r15
     xor rbx, rbx
+
+    mov r12, rdi                                    ; r12 = puntero matriz entrada
+    mov r13, rsi                                    ; r13 = puntero matriz salida
+    mov r14d, edx                                   ; r14 = filas
+    mov r15d, ecx                                   ; r15 = columnas
     mov ebx, r8d                                    ; rbx = radio
     sub rsp, 16
     movdqu [rsp], xmm0                              ; meto sigma en la pila 
