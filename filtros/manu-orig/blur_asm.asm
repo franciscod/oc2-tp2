@@ -15,17 +15,10 @@ extern imprimir_mat
 
 section .data
 
-    format_int:         db '%i', 10, 0
-    msg:                db '%f', 10
     mask_blue:          db 0x0C, 0xFF, 0xFF, 0xFF, 0x08, 0xFF, 0xFF, 0xFF, 0x04, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF 
     mask_green:         db 0x0D, 0xFF, 0xFF, 0xFF, 0x09, 0xFF, 0xFF, 0xFF, 0x05, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF
     mask_red:           db 0x0E, 0xFF, 0xFF, 0xFF, 0x0A, 0xFF, 0xFF, 0xFF, 0x06, 0xFF, 0xFF, 0xFF, 0x02, 0xFF, 0xFF, 0xFF
-    mask_last_pixel:    dd 0xFFFFFFFF, 0x00000000, 0x00000000, 0x00000000
-    mask_first:         dd 0x00000000, 0x00000000, 0x00000000, 0xFFFFFFFF
-    mask_second:        dd 0x00000000, 0x00000000, 0xFFFFFFFF, 0x00000000
-    mask_third:         dd 0x00000000, 0xFFFFFFFF, 0x00000000, 0x00000000
-    aplha_255:          db 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0x00, 0x00, 0x00
-
+    format_hex:         db 'ESTE ES TU ENTERO PIBE %x', 10, 0
 
 section .text
 ;void blur_asm    (
@@ -67,6 +60,23 @@ blur_asm:
 	mov rdi, rbx
 	; el sigma ya esta en xmm0
 	call generar_matriz_convolucion
+	; rax matriz de convolucion
+
+
+
+	; rdi puntero al inicio de la conv en imagen original
+    ; rsi inicio matriz convolucion
+	; rdx cant columnas imagen 
+    ; rcx lado mat convolucion
+	mov rdi, r12
+	mov rsi, rax
+	mov rdx, r15
+	mov rcx, rbx
+	imul rcx, 2
+	inc rcx
+	call convolucion
+
+	; en rax esta la convolucion del principio
 	
 	;recorro filas adentro del marquito
 		;recorro columnas adentro del marquito
@@ -80,6 +90,272 @@ blur_asm:
     pop r12
 	pop rbp
 	ret
+
+
+convolucion:
+	; rdi puntero al inicio de la conv en imagen original
+    ; rsi inicio matriz convolucion
+	; rdx cant columnas imagen 
+    ; rcx lado mat convolucion
+
+	; devuelve en rax el pixel resultante como 4 bytes BGRA
+
+	push rbp
+	mov rbp, rsp
+	push r12
+	push r13
+	push r14
+	push r15
+	mov r12, rdi ; puntero al inicio de la conv en imagen original
+	mov r13, rsi ; inicio matriz convolucion
+	mov r14, rdx ; cant columnas imagen 
+	mov r15, rcx ; lado mat convolucion (2r+1)
+    
+
+	%ifdef DEBUG
+			mov rdi, r13
+			mov rsi, r15
+			mov rdx, r15
+			call imprimir_mat
+	%endif
+
+	;                                                       0123      
+	; devuelve en rax el valor de la convolucion como pixel BGRA
+
+	; Voy a usar estos registros para acumular las componentes
+	pxor xmm0, xmm0        ; xmm0 = acumulador float :  azul | verde | rojo | 0
+
+
+    ; Seteo unas mascaras para separar las componentes
+    movdqu xmm13, [mask_blue]            
+    movdqu xmm14, [mask_green]
+    movdqu xmm15, [mask_red]
+
+    xor r8, r8                                  ; r8 = indice fila 
+    .filas:
+	; esto procesa 1 fila
+        cmp r8, r15
+        je .fin_filas
+
+        xor r9, r9                                  ; r9 = indice columna
+        .columnas:
+		; esto procesa 4 pixels de una fila (o 3 o 1)
+
+			mov r10, r8
+			imul r10, r14 ; cant columnas imagen
+			add r10, r9
+			shl r10, 2 ; multiplicamos por 16 el offset
+
+			mov r11, r8	
+			imul r11, r15 ; lado mat convolucion
+			add r11, r9
+			shl r11, 2 ; multiplicamos por 4 el offset
+
+			movdqu xmm3, [r12+r10]                  ; xmm1 = vector imagen entrada
+			.pepito:
+			movups xmm4, [r13+r11]                  ; lee 4 floats de convolucion desalineado
+
+
+			; Agrupo por componente (todos los azules por un lado...) usando un shuffle
+			movdqu xmm5, xmm3                   ; xmm5 va a contener solo las componentes azules
+			movdqu xmm6, xmm3                   ; xmm6 va a contener solo las componentes verdes
+			movdqu xmm7, xmm3                   ; xmm7 va a contener solo las componentes rojas
+
+			pshufb xmm5, xmm13                   ; xmm5 = B0 | 0 | 0 | 0 | B1 | 0 | 0 | 0 | B2 | 0 | 0 | 0 | B3 | 0 | 0 | 0
+			pshufb xmm6, xmm14                   ; xmm6 = G0 | 0 | 0 | 0 | G1 | 0 | 0 | 0 | G2 | 0 | 0 | 0 | G3 | 0 | 0 | 0
+			pshufb xmm7, xmm15                   ; xmm7 = R0 | 0 | 0 | 0 | R1 | 0 | 0 | 0 | R2 | 0 | 0 | 0 | R3 | 0 | 0 | 0
+
+			; Convierto a float
+			cvtdq2ps xmm5, xmm5
+			cvtdq2ps xmm6, xmm6
+			cvtdq2ps xmm7, xmm7
+
+			mov rax, r15
+			sub rax, r9
+            cmp rax, 4
+            jge .dpps_4
+			cmp rax, 3
+			je .dpps_3
+			jl .dpps_1
+
+			; ahora llamamos a esta funcion que tiene toda la posta (?)
+			; hace el producto interno entre los dos parametros y segun el inmediato que le pasas 
+			; despues definis que componentes se usan y a donde manda el resultado
+
+			.dpps_4:
+				; Voy multiplicando 4 vs 4 entre convolucion y componente k de cada pixel
+				dpps xmm5, xmm4, 0xF1
+				dpps xmm6, xmm4, 0xF2
+				dpps xmm7, xmm4, 0xF4
+				jmp .dpps_fin
+
+			.dpps_3:
+				dpps xmm5, xmm4, 0x71
+				dpps xmm6, xmm4, 0x72
+				dpps xmm7, xmm4, 0x74
+				jmp .dpps_fin
+
+			.dpps_1:
+				dpps xmm5, xmm4, 0x11
+				dpps xmm6, xmm4, 0x12
+				dpps xmm7, xmm4, 0x14
+				jmp .dpps_fin
+
+			.dpps_fin:
+				addps xmm0, xmm5
+				addps xmm0, xmm6
+				addps xmm0, xmm7
+
+			mov rax, r15
+			sub rax, r9
+            cmp rax, 4
+            jl .fin_col
+
+			add r9, 4
+			jmp .columnas
+
+        .fin_col:
+
+        inc r8
+        jmp .filas
+
+	.fin_filas:
+	
+	; Los redondeo a byte
+	cvtps2dq xmm0, xmm0
+
+	; empaquetamos
+	pxor xmm1, xmm1
+	packusdw xmm0, xmm1
+	packuswb xmm0, xmm1
+
+	xor rax, rax
+	movd eax, xmm0	
+	or eax, 0xFF000000 ; clava el alpha en 255
+
+	%ifdef DEBUG
+			push rax
+			push rax
+
+			mov rdi, format_hex
+			mov rsi, rax
+			call printf
+
+			pop rax
+			pop rax
+	%endif
+
+	pop r15
+	pop r14
+	pop r13
+	pop r12
+	pop rbp
+	ret
+
+viejito:
+    ; rdi = puntero matriz entrada
+    ; rsi = puntero matriz salida
+    ; rdx = filas
+    ; rcx = columnas
+    ; xmm0 = sigma
+    ; r8 = radio
+
+    xor r14, r14
+    xor r15, r15
+    xor rbx, rbx
+
+    mov r12, rdi                                    ; r12 = puntero matriz entrada
+    mov r13, rsi                                    ; r13 = puntero matriz salida
+    mov r14d, edx                                   ; r14 = filas
+    mov r15d, ecx                                   ; r15 = columnas
+    mov ebx, r8d                                    ; rbx = radio
+    sub rsp, 16
+    movdqu [rsp], xmm0                              ; meto sigma en la pila 
+
+
+
+    ; Recorro la imagen
+    mov rsi, r10
+    imul rsi, r10                                   ; rsi = (radio * 2 + 1)^2 = cantidad de pixeles de alrededor
+
+    mov r8, rbx                                     ; r8 = indice fila empezando por radio
+    
+    mov r10, r14
+    sub r10, rbx                                    ; r10 = filas - radio
+    
+    .filas_imagen: 
+        cmp r8, r10
+        je .fin
+
+        mov r9, rbx                                 ; r9 = indice columna empezando por radio
+        mov r11, r15
+        sub r11, rbx                                ; r11 = columnas - radio
+
+        .columnas_imagen:
+            cmp r9, r11
+            je .fin_columnas_imagen
+
+            push r12                                ; Me guardo la dir de la imagen de entrada
+            push rax                                ; Me guardo la dir de la mat de convolucion
+            mov rsi, r12
+
+            ; Llevo el puntero de la entrada a donde me interesa
+            mov rdi, r8
+            imul rdi, r15
+            add rdi, r9            
+            imul rdi, 16                            ; rdi = (fila * columnas + columna) * 16   
+            add r12, rdi
+
+            ;;;;;;
+
+;			  aca va la funcion que hace las cosas magicas con el pixel y tods los de alrededor
+
+			;;;;;;  
+
+            ; xmm10 tiene mi pixel. Lo meto en la imagen destino
+            mov rdi, r8
+            imul rdi, r15
+            add rdi, r9                             ; rdi = fila * columnas + columna
+
+            movups [r13 + rdi * 4], xmm10
+
+            pop rax
+            pop r12
+            
+            inc r9
+            jmp .columnas_imagen
+
+        .fin_columnas_imagen:
+
+        inc r8
+        jmp .filas_imagen
+
+
+    .fin:
+    ; Libero la matriz de convolucion
+    mov rdi, rax
+    call free
+    
+    pop rbx
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbp
+
+    ret
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+%define SIGMA_PILA rbp-16
+
+%define SIGMA_PILA rbp-16
 
 %define SIGMA_PILA rbp-16
 generar_matriz_convolucion:
@@ -113,7 +389,7 @@ generar_matriz_convolucion:
     
     ; Genero la matriz de convolucion
 
-    xor r14, r14                                      ; r15 = indice fila
+    xor r14, r14                                      ; r14 = indice fila
     .filas:
         cmp r14, r12
         je .fin_convolucion
@@ -166,273 +442,3 @@ generar_matriz_convolucion:
 	add rsp, 24
 	pop rbp
 	ret
-
-
-viejito:
-    ; rdi = puntero matriz entrada
-    ; rsi = puntero matriz salida
-    ; rdx = filas
-    ; rcx = columnas
-    ; xmm0 = sigma
-    ; r8 = radio
-
-    xor r14, r14
-    xor r15, r15
-    xor rbx, rbx
-
-    mov r12, rdi                                    ; r12 = puntero matriz entrada
-    mov r13, rsi                                    ; r13 = puntero matriz salida
-    mov r14d, edx                                   ; r14 = filas
-    mov r15d, ecx                                   ; r15 = columnas
-    mov ebx, r8d                                    ; rbx = radio
-    sub rsp, 16
-    movdqu [rsp], xmm0                              ; meto sigma en la pila 
-
-    ; Calculo el tamaño en bytes de la matriz = (radio * 2 + 1)² * tamaño_float
-    mov rdi, rbx
-    imul rdi, 2
-    inc rdi
-    mov r10, rdi                                    ; solo porque no funciona imul rdi, rdi. r10 = (radio * 2) + 1
-    push r10                                        ; lo guardo en la pila para usarlo en el futuro
-    imul rdi, r10
-    imul rdi, FLOAT_SIZE
-
-    ; Reservo memoria para la matriz de convolucion
-    call malloc                                     ; rax = puntero a la matriz de convolucion
-
-    ; Seteo algunas variables que van a ser usadas
-    pop r10                                         ; r10 = (radio * 2) + 1
-
-    movdqu xmm0, [rsp]                              ; xmm0 = sigma (Lo recupero de la pila)
-    add rsp, 16
-    
-    ; Genero la matriz de convolucion
-    xor r8, r8                                      ; r8 = indice fila
-    .filas:
-        cmp r8, r10
-        je .fin_convolucion
-
-        xor r9, r9                                  ; r9 = indice columna
-        .columnas:
-            cmp r9, r10
-            je .fin_fila
-
-            mov rdi, rbx
-            sub rdi, r8                             ; rdi = x = radio - fila
-
-            mov rsi, rbx
-            sub rsi, r9                             ; rsi = y = radio - columna
-
-            sub rsp, 16
-            movdqu [rsp], xmm0
-            push rax
-            push r8
-            push r9
-            push r10
-            sub rsp, 8
-
-            call G_sigma
-
-            add rsp, 8
-            pop r10
-            pop r9
-            pop r8
-            pop rax
-
-            mov r11, r8
-            imul r11, r10
-            add r11, r9                             ; r11 = fila * columnas + columna (indice)
-
-            movd [rax + r11 * FLOAT_SIZE], xmm0  ; Asigno el resultado de G_sigma a la posicion correspondiente de la matriz
-
-            movdqu xmm0, [rsp]                      ; xmm0 = sigma (Lo recupero de la pila)
-            add rsp, 16
-
-            inc r9
-            jmp .columnas
-
-        .fin_fila:
-
-        inc r8
-        jmp .filas
-
-
-    .fin_convolucion:
-
-    ; push rax
-    ; mov rdi, rax
-    ; mov rsi, r10
-    ; mov rdx, r10
-    ; call imprimir_mat
-    ; pop rax
-
-    ; Seteo unas mascaras para separar las componentes
-    movdqu xmm7, [mask_blue]            
-    movdqu xmm8, [mask_green]
-    movdqu xmm9, [mask_red]
-
-
-    ; Recorro la imagen
-    mov rsi, r10
-    imul rsi, r10                                   ; rsi = (radio * 2 + 1)^2 = cantidad de pixeles de alrededor
-
-    mov r8, rbx                                     ; r8 = indice fila empezando por radio
-    
-    mov r10, r14
-    sub r10, rbx                                    ; r10 = filas - radio
-    
-    .filas_imagen: 
-        cmp r8, r10
-        je .fin
-
-        mov r9, rbx                                 ; r9 = indice columna empezando por radio
-        mov r11, r15
-        sub r11, rbx                                ; r11 = columnas - radio
-
-        .columnas_imagen:
-            cmp r9, r11
-            je .fin_columnas_imagen
-
-            push r12                                ; Me guardo la dir de la imagen de entrada
-            push rax                                ; Me guardo la dir de la mat de convolucion
-            mov rsi, r12
-
-            ; Llevo el puntero de la entrada a donde me interesa
-            mov rdi, r8
-            imul rdi, r15
-            add rdi, r9            
-            imul rdi, 16                            ; rdi = (fila * columnas + columna) * 16   
-            add r12, rdi
-
-            ; Voy a usar estos registros para acumular los productos de la convolucion, uno por cada componente
-            pxor xmm10, xmm10                               ; xmm10 = acumulador azul
-            pxor xmm11, xmm11                               ; xmm11 = acumulador verde
-            pxor xmm12, xmm12                               ; xmm12 = acumulador rojo
-
-            xor rdi, rdi                            ; rdi = indice de convolucion
-            .recorer_conv:
-            
-                ; Tengo que tener en cuenta en que posicion estoy por el ultimo pixel
-                mov rdx, rsi
-                sub rdx, rdi                        ; rdx = cantidad de pixeles - indice
-                cmp rdx, 1
-                je .ultimo_pixel
-
-                ; Agarro de a 4 floats de la matriz de convolucion
-                movups xmm0, [rax]                  ; xmm0 = vector convolucion
-
-                ; Agarro 4 pixeles, 4 bytes cada uno. 1 byte por cada componente
-                movups xmm1, [r12]                  ; xmm1 = vector imagen entrada
-
-                ; Agrupo por componente (todos los azules por un lado...) usando un shuffle
-                movups xmm2, xmm1                   ; xmm2 va a contener solo las componentes azules
-                movups xmm3, xmm1                   ; xmm3 va a contener solo las componentes verdes
-                movups xmm4, xmm1                   ; xmm4 va a contener solo las componentes rojas
-
-                pshufb xmm2, xmm7                   ; xmm2 = B0 | 0 | 0 | 0 | B1 | 0 | 0 | 0 | B2 | 0 | 0 | 0 | B3 | 0 | 0 | 0
-                pshufb xmm3, xmm8                   ; xmm3 = G0 | 0 | 0 | 0 | G1 | 0 | 0 | 0 | G2 | 0 | 0 | 0 | G3 | 0 | 0 | 0
-                pshufb xmm4, xmm9                   ; xmm4 = R0 | 0 | 0 | 0 | R1 | 0 | 0 | 0 | R2 | 0 | 0 | 0 | R3 | 0 | 0 | 0
-
-                ; Convierto a float (hay alguna mierda de endianess dando vuelta que me dan ganas de..)
-                cvtdq2ps xmm2, xmm2
-                cvtdq2ps xmm3, xmm3
-                cvtdq2ps xmm4, xmm4
-
-                ; Voy multiplicando 4 vs 4 entre convolucion y componente k de cada pixel
-                mulps xmm2, xmm0
-                mulps xmm3, xmm0
-                mulps xmm4, xmm0
-
-                ; Me quedan 4 vectores, uno con cada componente multiplicada
-                ; Acumulo cada uno en un xmm que cuando termine voy a shiftear y sumar
-                addps xmm10, xmm2
-                addps xmm11, xmm3
-                addps xmm12, xmm4
-
-                ; Avanzo de a 4 pixeles = 16 bytes
-                add r12, 16
-                add rax, 16
-                add rdi, 4
-                jmp .recorer_conv
-
-            .ultimo_pixel:
-            
-            ; Shifteo para acomodar el ultimo pixel
-            ; movdqu xmm5, [mask_last_pixel]
-            ; andps xmm2, xmm5
-            ; andps xmm3, xmm5
-            ; andps xmm4, xmm5
-
-            ; Acumulo
-            ; addps xmm10, xmm2
-            ; addps xmm11, xmm3
-            ; addps xmm12, xmm4
-
-            ; Sumo las sumatorias parciales de cada registro
-            haddps xmm10, xmm10
-            haddps xmm10, xmm10
-            haddps xmm11, xmm11
-            haddps xmm11, xmm11
-            haddps xmm12, xmm12
-            haddps xmm12, xmm12
-
-            ; Termino la sumatoria y me quedan 3 xmm (el alpha ya se que es 255) con los valores
-            ; Los redondeo a byte y asigno a la imagen destino
-            cvtps2dq xmm10, xmm10
-            cvtps2dq xmm11, xmm11
-            cvtps2dq xmm12, xmm12
-
-            ; Dejo solo el primer valor en cada registro
-            movdqu xmm5, [mask_first]
-            andps xmm10, xmm5
-            andps xmm11, xmm5
-            andps xmm12, xmm5
-
-            ; Acomodo el valor en la posicion que corresponda al color
-            psrldq xmm10, 12
-            psrldq xmm11, 8
-            psrldq xmm12, 4
-            
-            ; Junto los componentes
-            movdqu xmm13, [aplha_255]
-            addps xmm10, xmm11
-            addps xmm10, xmm12
-            addps xmm10, xmm13
-
-            ; Empaqueto
-            pxor xmm13, xmm13
-            packusdw xmm10, xmm13
-            packuswb xmm10, xmm13
-            
-            ; xmm10 tiene mi pixel. Lo meto en la imagen destino
-            mov rdi, r8
-            imul rdi, r15
-            add rdi, r9                             ; rdi = fila * columnas + columna
-
-            movups [r13 + rdi * 4], xmm10
-
-            pop rax
-            pop r12
-            
-            inc r9
-            jmp .columnas_imagen
-
-        .fin_columnas_imagen:
-
-        inc r8
-        jmp .filas_imagen
-
-
-    .fin:
-    ; Libero la matriz de convolucion
-    mov rdi, rax
-    call free
-    
-    pop rbx
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop rbp
-
-    ret

@@ -11,6 +11,7 @@ const int OFFSET_ALPHA = 3;
 #define M_PI 3.14159265358979323846
 
 float G_sigma(int x, int y, float sigma){
+	return 1.0/10.0;
     return(exp(-((x * x + y * y) / (2 * sigma * sigma))) / (2 * M_PI * sigma * sigma));
 }
 
@@ -36,6 +37,7 @@ void blur_c(unsigned char *src, unsigned char *dst, int cols, int rows, float si
         }
         printf("\n");
     }
+	int primero = 1;
 
     for(int row = radius; row < rows - radius; row++){
         for(int col = radius; col < cols - radius; col++){
@@ -57,6 +59,10 @@ void blur_c(unsigned char *src, unsigned char *dst, int cols, int rows, float si
             dst_matrix[row][col * 4 + OFFSET_GREEN] = (unsigned char) green;
             dst_matrix[row][col * 4 + OFFSET_RED] = (unsigned char) red;
             dst_matrix[row][col * 4 + OFFSET_ALPHA] = 255;
+
+			if (!primero) continue;
+			primero = 0;
+        	printf("ESTE ES TU ENTERO PIBE %x %x %x %x\n", 255, (unsigned char) red, (unsigned char) green, (unsigned char) blue);
         }
     }
 }
