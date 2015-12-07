@@ -7,10 +7,11 @@ extern printf
 extern G_sigma
 extern imprimir_mat
 
-%define FLOAT_SIZE 4
-%define PI         3.14159265358979323846
+%define FLOAT_SIZE  4
+%define PIXEL_SIZE  4
+%define PI          3.14159265358979323846
 
-%define DEBUG 		1
+%define DEBUG       1
 
 
 section .data
@@ -31,6 +32,7 @@ section .text
 
 _blur_asm:
 blur_asm:
+
     ; rdi = puntero matriz entrada
     ; rsi = puntero matriz salida
     ; rdx = filas
@@ -60,27 +62,92 @@ blur_asm:
 	mov rdi, rbx
 	; el sigma ya esta en xmm0
 	call generar_matriz_convolucion
-	; rax matriz de convolucion
-
-
+	mov r11, rax                                    ; r11 = matriz de convolucion
 
 	; rdi puntero al inicio de la conv en imagen original
     ; rsi inicio matriz convolucion
 	; rdx cant columnas imagen 
     ; rcx lado mat convolucion
-	mov rdi, r12
-	mov rsi, rax
-	mov rdx, r15
-	mov rcx, rbx
-	imul rcx, 2
-	inc rcx
-	call convolucion
+	; mov rdi, r12
+	; mov rsi, rax
+	; mov rdx, r15
+	; mov rcx, rbx
+	; imul rcx, 2
+	; inc rcx
+	; call calcular_pixel
 
 	; en rax esta la convolucion del principio
 	
 	;recorro filas adentro del marquito
-		;recorro columnas adentro del marquito
-    ;	call calcular_pixel
+    mov r8, rbx                                      ; r8 = y            radio hasta filas - radio
+    .filas:
+
+        mov r10, r14
+        sub r10, rbx
+        cmp r8, r10                                 ; me fijo si llego a filas - radio
+        je .fin_filas
+
+		; ;recorro columnas adentro del marquito
+        mov r9, rbx                                 ; r9 = x             radio hasta columnas - radio
+        .columnas:
+
+            mov r10, r15
+            sub r10, rbx
+            cmp r9, r10                             ; me dijo si llego a columnas - radio
+            je .fin_columnas
+
+            push r8
+            push r9
+            push r11
+            sub rsp, 8
+
+            ; rdi puntero al inicio de la conv en imagen original
+            ; rsi inicio matriz convolucion
+            ; rdx cant columnas imagen 
+            ; rcx lado mat convolucion
+            mov r10, r8
+            imul r10, r15
+            add r10, r9                             ; hasta aca r10 tiene la posicion en la imagen, me falta restarle restarle el radio en x e y, para obtener la posicion al inicio de la con en la imagen original
+
+            sub r10, rbx                            ; resto en x
+            
+            mov rax, rbx
+            imul rax, rdx
+            sub r10, rax                            ; resto en y
+
+            imul r10, PIXEL_SIZE                    ; r10 = offset para el inicio de la conv en imagen original
+
+            mov rdi, r12
+            add rdi, r10
+
+            mov rsi, r11
+            mov rdx, r15
+            mov rcx, rbx
+            imul rcx, 2
+            inc rcx
+
+            call calcular_pixel                     ; devuelve en rax el pixel resultante como 4 bytes BGRA
+
+            add rsp, 8
+            pop r11
+            pop r9
+            pop r8
+
+            ; guardo el pixel resultante en la matriz destino
+            mov r10, r8
+            imul r10, r15
+            add r10, r9                             ; r10 = posicion en la matriz destino
+            mov [r13 + r10 * PIXEL_SIZE], ax        ; guardo el pixel en: inicioMatDest + (y * columnas + x) * tamaño_pixel
+
+            inc r9
+            jmp .columnas
+
+        .fin_columnas:
+
+        inc r8
+        jmp .filas
+
+    .fin_filas:
 
 	add rsp, 8
     pop rbx
@@ -92,7 +159,7 @@ blur_asm:
 	ret
 
 
-convolucion:
+calcular_pixel:
 	; rdi puntero al inicio de la conv en imagen original
     ; rsi inicio matriz convolucion
 	; rdx cant columnas imagen 
@@ -112,12 +179,12 @@ convolucion:
 	mov r15, rcx ; lado mat convolucion (2r+1)
     
 
-	%ifdef DEBUG
-			mov rdi, r13
-			mov rsi, r15
-			mov rdx, r15
-			call imprimir_mat
-	%endif
+	; %ifdef DEBUG
+	; 		mov rdi, r13
+	; 		mov rsi, r15
+	; 		mov rdx, r15
+	; 		call imprimir_mat
+	; %endif
 
 	;                                                       0123      
 	; devuelve en rax el valor de la convolucion como pixel BGRA
