@@ -107,16 +107,17 @@ blur_asm:
             ; rcx lado mat convolucion
 
             mov r10, r8
+			sub r10, rbx
+			; r10 es y-r
             imul r10, r15
+			; r10 es (y-r) * cols
             add r10, r9                             ; hasta aca r10 tiene la posicion en la imagen, me falta restarle restarle el radio en x e y, para obtener la posicion al inicio de la con en la imagen original
-
+			; r10 es (y-r) * cols + x
             sub r10, rbx                            ; resto en x
-            
-            mov rax, rbx
-            imul rax, r15
-            sub r10, rax                            ; resto en y
+			; r10 es (y-r) * cols + x - r
 
             imul r10, PIXEL_SIZE                    ; r10 = offset para el inicio de la conv en imagen original
+			; r10 es ((y - r) * cols + x - r) * 4
 
             mov rdi, r12
             add rdi, r10
@@ -138,7 +139,7 @@ blur_asm:
             mov r10, r8
             imul r10, r15
             add r10, r9                             ; r10 = posicion en la matriz destino
-            mov [r13 + r10 * PIXEL_SIZE], ax        ; guardo el pixel en: inicioMatDest + (y * columnas + x) * tamaño_pixel
+            mov [r13 + r10 * PIXEL_SIZE], eax       ; guardo el pixel en: inicioMatDest + (y * columnas + x) * tamaño_pixel
 
             inc r9
             jmp .columnas
@@ -320,110 +321,6 @@ calcular_pixel:
 	pop rbp
 	ret
 
-viejito:
-    ; rdi = puntero matriz entrada
-    ; rsi = puntero matriz salida
-    ; rdx = filas
-    ; rcx = columnas
-    ; xmm0 = sigma
-    ; r8 = radio
-
-    xor r14, r14
-    xor r15, r15
-    xor rbx, rbx
-
-    mov r12, rdi                                    ; r12 = puntero matriz entrada
-    mov r13, rsi                                    ; r13 = puntero matriz salida
-    mov r14d, edx                                   ; r14 = filas
-    mov r15d, ecx                                   ; r15 = columnas
-    mov ebx, r8d                                    ; rbx = radio
-    sub rsp, 16
-    movdqu [rsp], xmm0                              ; meto sigma en la pila 
-
-
-
-    ; Recorro la imagen
-    mov rsi, r10
-    imul rsi, r10                                   ; rsi = (radio * 2 + 1)^2 = cantidad de pixeles de alrededor
-
-    mov r8, rbx                                     ; r8 = indice fila empezando por radio
-    
-    mov r10, r14
-    sub r10, rbx                                    ; r10 = filas - radio
-    
-    .filas_imagen: 
-        cmp r8, r10
-        je .fin
-
-        mov r9, rbx                                 ; r9 = indice columna empezando por radio
-        mov r11, r15
-        sub r11, rbx                                ; r11 = columnas - radio
-
-        .columnas_imagen:
-            cmp r9, r11
-            je .fin_columnas_imagen
-
-            push r12                                ; Me guardo la dir de la imagen de entrada
-            push rax                                ; Me guardo la dir de la mat de convolucion
-            mov rsi, r12
-
-            ; Llevo el puntero de la entrada a donde me interesa
-            mov rdi, r8
-            imul rdi, r15
-            add rdi, r9            
-            imul rdi, 16                            ; rdi = (fila * columnas + columna) * 16   
-            add r12, rdi
-
-            ;;;;;;
-
-;			  aca va la funcion que hace las cosas magicas con el pixel y tods los de alrededor
-
-			;;;;;;  
-
-            ; xmm10 tiene mi pixel. Lo meto en la imagen destino
-            mov rdi, r8
-            imul rdi, r15
-            add rdi, r9                             ; rdi = fila * columnas + columna
-
-            movups [r13 + rdi * 4], xmm10
-
-            pop rax
-            pop r12
-            
-            inc r9
-            jmp .columnas_imagen
-
-        .fin_columnas_imagen:
-
-        inc r8
-        jmp .filas_imagen
-
-
-    .fin:
-    ; Libero la matriz de convolucion
-    mov rdi, rax
-    call free
-    
-    pop rbx
-    pop r15
-    pop r14
-    pop r13
-    pop r12
-    pop rbp
-
-    ret
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-%define SIGMA_PILA rbp-16
-
-%define SIGMA_PILA rbp-16
 
 %define SIGMA_PILA rbp-16
 generar_matriz_convolucion:
@@ -492,13 +389,6 @@ generar_matriz_convolucion:
         jmp .filas
 
 	.fin_convolucion:
-
-	%ifdef DEBUG
-			mov rdi, rbx
-			mov rsi, r12
-			mov rdx, r12
-			call imprimir_mat
-	%endif
 
 	mov rax, rbx ; devuelve base de la matriz
 
