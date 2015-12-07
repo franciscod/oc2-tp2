@@ -105,6 +105,7 @@ blur_asm:
             ; rsi inicio matriz convolucion
             ; rdx cant columnas imagen 
             ; rcx lado mat convolucion
+
             mov r10, r8
             imul r10, r15
             add r10, r9                             ; hasta aca r10 tiene la posicion en la imagen, me falta restarle restarle el radio en x e y, para obtener la posicion al inicio de la con en la imagen original
@@ -112,7 +113,7 @@ blur_asm:
             sub r10, rbx                            ; resto en x
             
             mov rax, rbx
-            imul rax, rdx
+            imul rax, r15
             sub r10, rax                            ; resto en y
 
             imul r10, PIXEL_SIZE                    ; r10 = offset para el inicio de la conv en imagen original
@@ -306,7 +307,7 @@ calcular_pixel:
 
 			mov rdi, format_hex
 			mov rsi, rax
-			call printf
+;			call printf
 
 			pop rax
 			pop rax

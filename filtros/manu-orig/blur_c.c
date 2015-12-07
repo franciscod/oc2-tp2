@@ -11,7 +11,6 @@ const int OFFSET_ALPHA = 3;
 #define M_PI 3.14159265358979323846
 
 float G_sigma(int x, int y, float sigma){
-	return 1.0/10.0;
     return(exp(-((x * x + y * y) / (2 * sigma * sigma))) / (2 * M_PI * sigma * sigma));
 }
 
