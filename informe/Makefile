@@ -1,2 +1,2 @@
-informe.pdf: informe.tex
+informe: informe.tex
 	pdflatex informe.tex
