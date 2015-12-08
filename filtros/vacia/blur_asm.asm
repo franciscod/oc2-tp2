@@ -11,8 +11,8 @@ section .text
 ;void blur_asm    (
 	;unsigned char *src,
 	;unsigned char *dst,
-	;int filas,
-	;int cols,
+	;int COLUMNAS,
+	;int FILAS,
     ;float sigma,
     ;int radius)
 
