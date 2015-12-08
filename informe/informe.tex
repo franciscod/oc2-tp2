@@ -47,13 +47,30 @@
 \newpage
 
 % Para crear un indice
-%\tableofcontents
+\tableofcontents
 
 % Forzar salto de pagina
 \clearpage
 
-% Pueden modularizar el documento incluyendo otros .tex
-% \include{observaciones}
+\section{Objetivos generales}
+
+El objetivo de este trabajo práctico es evaluar la eficiencia del modelo de programación SIMD mediante la implementación de diversos algoritmos en lenguaje Ensamblador utilizando instrucciones SSE. \\
+\indent Las mediciones se realizan mediante pruebas empíricas del código frente a algoritmos que cumplen la misma especificación, implementados en un lenguaje de alto nivel (C). \\
+\indent En este proyecto, los algoritmos a implementar se basaron en el procesamiento de imágenes, en el cual el uso del modelo SIMD es provechoso.
+
+\section{Calidad de las Mediciones}
+Antes de medir tiempos y sacar conclusiones de los mismos, es importante tener un esquema básico de como se realizarán las mediciones en el presente trabajo, y bajo que condiciones. \\
+
+\textbf{Características de la computadora en la que los experimentos fueron realizados:} \\
+\textit{Procesador:} Intel Core iX XGH X CPUs @ XGHz\\
+\textit{Memoria RAM:} X GB \\
+\textit{Sistema operativo:} Ubuntu 14.04 64 bits. \\
+
+Las mediciones se realizaron corriendo los filtros X veces cada uno. Se realizó un promedio, y estos promedios son los que se pueden apreciar en los distintos gráficos. Los tiempos están medidos en ¿¿¿¿¿¿¿ciclos de clock??????.
+
+\section{Experimentación}
+
+
 
 \section{Observaciones}
 	\includegraphics[keepaspectratio]{gen/diff.png}
