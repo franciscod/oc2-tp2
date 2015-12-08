@@ -16,3 +16,5 @@ filtros/blur_c.c
 filtros/diff_asm.asm
 filtros/diff_c.c
 
+
+*.toc
