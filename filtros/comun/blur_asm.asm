@@ -128,7 +128,7 @@ blur_asm:
             imul rcx, 2
             inc rcx
 
-            call calcular_pixel_c                     ; devuelve en rax el pixel resultante como 4 bytes BGRA
+            call calcular_pixel                     ; devuelve en rax el pixel resultante como 4 bytes BGRA
 
             add rsp, 8
             pop r11
@@ -201,13 +201,13 @@ calcular_pixel:
     movdqu xmm14, [mask_green]
     movdqu xmm15, [mask_red]
 
-    xor r8, r8                                  ; r8 = indice fila
+    xor r8, r8                                  ; r8 = indice fila, de 0 a r15
     .filas:
 	; esto procesa 1 fila
         cmp r8, r15
         je .fin_filas
 
-        xor r9, r9                                  ; r9 = indice columna
+        xor r9, r9                                  ; r9 = indice columna, de 0 a r15&~0x03, lo suma de a 4
         .columnas:
 		; esto procesa 4 pixels de una fila (o 3 o 1)
 
@@ -220,7 +220,6 @@ calcular_pixel:
 			add r11, r9
 
 			movdqu xmm3, [r12+r10*PIXEL_SIZE]                  ; xmm1 = vector imagen entrada
-			.pepito:
 			movups xmm4, [r13+r11*FLOAT_SIZE]                  ; lee 4 floats de convolucion desalineado
 
 
@@ -238,49 +237,57 @@ calcular_pixel:
 			cvtdq2ps xmm6, xmm6
 			cvtdq2ps xmm7, xmm7
 
-			mov rax, r15
-			sub rax, r9
-            cmp rax, 4
-            jge .dpps_4
-			cmp rax, 3
-			je .dpps_3
-			jl .dpps_1
+            ; nota: 2r+1 es o bien 4k+1 o bien 4k+3
+
+			mov rax, r15 ; ancho conv
+			sub rax, r9 ; ancho conv -x
+            cmp rax, 4 ; >=4?
+            jge .dpps_4 ; procesa 4
+			cmp rax, 3 ; =3?
+			je .dpps_3 ; procesa 3
+			jl .dpps_1 ; procesa 1
 
 			; ahora llamamos a esta funcion que tiene toda la posta (?)
 			; hace el producto interno entre los dos parametros y segun el inmediato que le pasas
 			; despues definis que componentes se usan y a donde manda el resultado
+            ; el primer nibble dice que cuentas se hacen:
+            ;    F se hacen todas, 7 se hacen las primeras 3, 1 se hace solo la primeras
+            ; el segundo nibble dice donde va el resultado
+            ;    1 canal azul, 2 canal verde, 4, canal rojo
+            ; esto esta bueno porque despues sumas directamente los 3 registros y te queda el valor del pixel
 
 			.dpps_4:
 				; Voy multiplicando 4 vs 4 entre convolucion y componente k de cada pixel
 				dpps xmm5, xmm4, 0xF1
 				dpps xmm6, xmm4, 0xF2
 				dpps xmm7, xmm4, 0xF4
-				jmp .dpps_fin
+
+    			addps xmm0, xmm5
+    			addps xmm0, xmm6
+    			addps xmm0, xmm7
+
+    			add r9, 4 ; avanza 4 casilleros, proceso 4 px y 4 coefs de convolucion
+    			jmp .columnas ; sigue
 
 			.dpps_3:
 				dpps xmm5, xmm4, 0x71
 				dpps xmm6, xmm4, 0x72
 				dpps xmm7, xmm4, 0x74
-				jmp .dpps_fin
+
+                addps xmm0, xmm5
+				addps xmm0, xmm6
+				addps xmm0, xmm7
+                jl .fin_col
 
 			.dpps_1:
 				dpps xmm5, xmm4, 0x11
 				dpps xmm6, xmm4, 0x12
 				dpps xmm7, xmm4, 0x14
-				jmp .dpps_fin
 
-			.dpps_fin:
 				addps xmm0, xmm5
 				addps xmm0, xmm6
 				addps xmm0, xmm7
-
-			mov rax, r15
-			sub rax, r9
-            cmp rax, 4
-            jl .fin_col
-
-			add r9, 4
-			jmp .columnas
+                jl .fin_col
 
         .fin_col:
 

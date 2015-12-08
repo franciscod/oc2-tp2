@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <math.h>
+#include <assert.h>
 #include "../tp2.h"
 
 const int OFFSET_BLUE = 0;
@@ -32,11 +33,9 @@ unsigned int calcular_pixel_c(unsigned char *src, float *conv, int cols, int con
     float red = 0.0;
     for(int x = 0; x <= convside; x++){
         for(int y = 0; y <= convside; y++){
-            //printf("conv %f\n", conv_matrix[y][x]);
-            blue  += ((float) src_matrix[0 + y][(0 + x) * 4 + OFFSET_BLUE]) * conv_matrix[y][x];
-            green += ((float) src_matrix[0 + y][(0 + x) * 4 + OFFSET_GREEN]) * conv_matrix[y][x];
-            red   += ((float) src_matrix[0 + y][(0 + x) * 4 + OFFSET_RED]) * conv_matrix[y][x];
-            // printf("%f %f %f\n", (float) (src_matrix[0 + y][(0 + x) * 4 + OFFSET_GREEN]), conv_matrix[radius - y][radius - x], green);
+            blue  += ((float) src_matrix[y][(x) * 4 + OFFSET_BLUE]) * conv_matrix[y][x];
+            green += ((float) src_matrix[y][(x) * 4 + OFFSET_GREEN]) * conv_matrix[y][x];
+            red   += ((float) src_matrix[y][(x) * 4 + OFFSET_RED]) * conv_matrix[y][x];
         }
     }
 
@@ -48,7 +47,6 @@ unsigned int calcular_pixel_c(unsigned char *src, float *conv, int cols, int con
     //printf("%f %f %f %x\n", red, green, blue, ret);
     return ret;
 }
-
 
 void blur_c(unsigned char *src, unsigned char *dst, int cols, int rows, float sigma, int radius){
     unsigned char (*src_matrix)[cols*4] = (unsigned char (*)[cols*4]) src;
@@ -93,7 +91,12 @@ void blur_c(unsigned char *src, unsigned char *dst, int cols, int rows, float si
         	// printf("ESTE ES TU ENTERO PIBE %x %x %x %x\n", 255, (unsigned char) red, (unsigned char) green, (unsigned char) blue);
 
             // version que llama a calcular_pixel_c
-            unsigned int pix = calcular_pixel_c(&src_matrix[row-radius][(col-radius)*4], conv_matrix, cols, 2*radius+1);
+
+            //unsigned int pix = calcular_pixel_c(&src_matrix[row-radius][(col-radius)*4], conv_matrix, cols, 2*radius+1);
+            assert(&src_matrix[row-radius][(col-radius)*4] == (src + (row-radius) * cols*4 + (col-radius)*4));
+            assert(&src_matrix[row-radius][(col-radius)*4] == (src + ((row-radius) * cols + (col-radius))*4));
+            unsigned int pix = calcular_pixel_c(src + ((row-radius) * cols + (col-radius))*4, conv_matrix, cols, 2*radius+1);
+
             dst_matrix[row][col * 4 + OFFSET_BLUE] = (unsigned char) ((pix >> 0) & 0xFF);
             dst_matrix[row][col * 4 + OFFSET_GREEN] = (unsigned char) ((pix >> 8) & 0xFF);
             dst_matrix[row][col * 4 + OFFSET_RED] = (unsigned char) ((pix >> 16) & 0xFF);
