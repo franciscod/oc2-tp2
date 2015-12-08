@@ -17,6 +17,8 @@
 \usepackage{graphicx}
 \graphicspath{{img/}}
 
+\input{codesnippet}
+
 % Encabezado
 \lhead{Organización del Computador II}
 \rhead{Grupo: Fuga Villera Nro. 2}
@@ -75,7 +77,7 @@ Los experimentos realizados se dividen dos ramas: en comparar los filtros implem
 En cuanto a las implementaciones del blur, lo que hicimos fue alternar la forma en la que recorrimos la matriz de convolucion para calcular el valor de cada pixel. En la primer implementación la recorrimos desplazandonos por cada fila hasta llegar al borde derecho y pasar a la suguiente fila. En la otra, en cambio, nos desplazamos por columna (DE ESTO QUIZAS PODRIA HACERSE UN GRAFICO QUE LO ILUSTRE MEJOR, SOBRE TODO LA PARTE DE QUE AGARRAMOS DE A 4 DE UNA MISMA FILA PERO EL MOVIMIENTO ES DE COLUMNA) hasta llegar a la ultima fila y ahi seguimos con las siguientes 4 columnas.
 
 Es necesario destacar dos cosas: gracias a las operaciones SSE podemos computar 4 pixeles simultaneamente, pero estos pixeles son contiguos en memoria, lo que equivale a que estan uno al lado del otro horizontalmente en la imagen. Es por esto que una vez que termino de recorrer la columna, la siguiente será la que se encuentra a 4 posiciones de distancia.
-¿HIPOTESIS?:La forma en la que se almacena y se vacía la memoria caché se ve afecatada por la forma en que recorramos la matriz, ya que al hacer un recorrido contiguo en memoria, equivalente a recorrer la imagen horizontalmente, tendrá un mayor hitrate que si la recorremos verticalmente, ya que al no ser contiguas se deberán leer de memoria varios bloques que puedan no encontrarse almacenados. Esto representaría una baja en la performance temporal del algoritmo.
+¿HIPOTESIS?:La forma en la que se almacena y se vacía la memoria caché se ve afecatada por la forma en que recorramos la matriz, ya que al hacer un recorrido contiguo en memoria, equivalente a recorrer la imagen horizontalmente, tendrá un mayor hitrate que si la recorremos verticalmente, ya que al no ser contiguas se deberán leer de memoria varios bloques que puedan no encontrarse almacenados. Esto representaría una baja en la performance temporal del algoritmo. \\
 
 C vs ASM
 
@@ -93,6 +95,50 @@ ASM vs ASM
 	\item Registrar el comportamiento de la memoria caché frente a las distintas formas de recorrer las matrices para las implementaciones del filtro blur
 \end{enumerate}
 
+
+\section{Blur}
+
+\subsection{Introducción}
+
+\textit{Blur} es un filtro que suaviza una imagen. Consta de asignarle a cada componente de la imágen de salida el promedio de la vecindad del mismo en la imágen original. En este trabajo práctico tomaremos el promedio ponderado, para lograr un desenfoque más natural. Se lo llama Blur Gaussiano ya que la matriz que se utiliza para calcular este promedio es calculada a partir de una función Gaussiana. \\
+
+Los bordes de la imágen no se veran afectados por el filtro ya que en esas posiciones de la imagen no se puede tomar la cantidad de vecinos necesaria. \\
+
+(PODRIA HABLAR DE LOS PARAMETROS QUE TOMA EL BLUR)
+
+\subsection{Implementación en C}
+
+En la implementación en C, el cálculo de cada pixel consiste en recorrer los pixeles vecinos utilizando dos índices (x e y), acumular el valor del producto entre cada una de las componentes del pixel y el valor correspondiente de la matriz de convolución, y una vez terminado el recorrido, escribir en la imágen de salida el resultado acumulado para cada una de las componentes. \\
+
+Este es el pseudocódigo de cada iteración del ciclo:
+
+\begin{codesnippet}
+\begin{verbatim}
+
+blue = 0
+green = 0
+red = 0
+
+for x from -radius to radius inclusive do:
+  for y from -radius to radius inclusive do:
+
+      blue  += (src_matrix[row + y][(col + x) * 4 + OFFSET_BLUE]) *
+                conv_matrix[radius - y][radius - x];
+
+      green += (src_matrix[row + y][(col + x) * 4 + OFFSET_GREEN]) *
+                conv_matrix[radius - y][radius - x];
+
+      red   += (src_matrix[row + y][(col + x) * 4 + OFFSET_RED]) *
+                conv_matrix[radius - y][radius - x];
+
+dst_matrix[row][col * 4 + OFFSET_BLUE]  = blue;
+dst_matrix[row][col * 4 + OFFSET_GREEN] = green;
+dst_matrix[row][col * 4 + OFFSET_RED]   = red;
+dst_matrix[row][col * 4 + OFFSET_ALPHA] = 255;
+
+\end{verbatim}
+\end{codesnippet}
+
 \section{Observaciones}
 	\includegraphics[keepaspectratio]{gen/diff.png}
 	\begin{enumerate}
@@ -100,11 +146,10 @@ ASM vs ASM
 		\item otro item
 	\end{enumerate}
 
-% Otro salto de pagina
-% \newpage
-
 \section{Resolución}
 
+\vspace*{0.3cm}
+$xmm0=  0|b_{sup1}$ $g_{sup1}$ $r_{sup1}$ $a_{sup1}$ 
 
 % \subsection{Ejercicio X}
 
