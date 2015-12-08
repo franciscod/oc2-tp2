@@ -70,7 +70,28 @@ Las mediciones se realizaron corriendo los filtros X veces cada uno. Se realizó
 
 \section{Experimentación}
 
+Los experimentos realizados se dividen dos ramas: en comparar los filtros implementados en C contra los implementados en ASM, y comparar específicamente sobre filtro blur, las distintas implementaciones del mismo. \\
 
+En cuanto a las implementaciones del blur, lo que hicimos fue alternar la forma en la que recorrimos la matriz de convolucion para calcular el valor de cada pixel. En la primer implementación la recorrimos desplazandonos por cada fila hasta llegar al borde derecho y pasar a la suguiente fila. En la otra, en cambio, nos desplazamos por columna (DE ESTO QUIZAS PODRIA HACERSE UN GRAFICO QUE LO ILUSTRE MEJOR, SOBRE TODO LA PARTE DE QUE AGARRAMOS DE A 4 DE UNA MISMA FILA PERO EL MOVIMIENTO ES DE COLUMNA) hasta llegar a la ultima fila y ahi seguimos con las siguientes 4 columnas.
+
+Es necesario destacar dos cosas: gracias a las operaciones SSE podemos computar 4 pixeles simultaneamente, pero estos pixeles son contiguos en memoria, lo que equivale a que estan uno al lado del otro horizontalmente en la imagen. Es por esto que una vez que termino de recorrer la columna, la siguiente será la que se encuentra a 4 posiciones de distancia.
+¿HIPOTESIS?:La forma en la que se almacena y se vacía la memoria caché se ve afecatada por la forma en que recorramos la matriz, ya que al hacer un recorrido contiguo en memoria, equivalente a recorrer la imagen horizontalmente, tendrá un mayor hitrate que si la recorremos verticalmente, ya que al no ser contiguas se deberán leer de memoria varios bloques que puedan no encontrarse almacenados. Esto representaría una baja en la performance temporal del algoritmo.
+
+C vs ASM
+
+\begin{enumerate}
+	\item Medir los tiempos que tardan los distintos filtros para distintos tamaños de imágenes y para imágenes diferentes. Este experimento tiene como objetivo tener una idea del tiempo de ejecución del algoritmo en general, y comparandolo con otras implementaciones del mismo, tener una idea de cual tiene mejor tiempo de ejecución.
+	\item Medir y comparar la memoria utilizada por cada filtro
+	\item Registrar la precisión que pueda perderse en cada lenguaje
+	\item Repetir los experimentos utilizando la optimización O3 para C
+\end{enumerate}
+
+ASM vs ASM
+
+\begin{enumerate}
+	\item Medir los tiempos que tardan ambas implementaciones del filtro blur
+	\item Registrar el comportamiento de la memoria caché frente a las distintas formas de recorrer las matrices para las implementaciones del filtro blur
+\end{enumerate}
 
 \section{Observaciones}
 	\includegraphics[keepaspectratio]{gen/diff.png}
