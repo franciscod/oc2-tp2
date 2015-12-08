@@ -277,7 +277,7 @@ calcular_pixel:
                 addps xmm0, xmm5
 				addps xmm0, xmm6
 				addps xmm0, xmm7
-                jl .fin_col
+                jl .proceso_ultima_col
 
 			.dpps_1:
 				dpps xmm5, xmm4, 0x11
@@ -287,12 +287,11 @@ calcular_pixel:
 				addps xmm0, xmm5
 				addps xmm0, xmm6
 				addps xmm0, xmm7
-                jl .fin_col
+                jl .proceso_ultima_col
 
-        .fin_col:
-
-        inc r8
-        jmp .filas
+        .proceso_ultima_col:
+            inc r8
+            jmp .filas
 
 	.fin_filas:
 
