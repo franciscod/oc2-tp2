@@ -32,11 +32,11 @@ void blur_c(unsigned char *src, unsigned char *dst, int cols, int rows, float si
     for(int i = 0; i < 2 * radius + 1; i++){
         for(int j = 0; j < 2 * radius + 1; j++){
             conv_matrix[i][j] = G_sigma(radius - i, radius - j, sigma);
-            printf("%f ", conv_matrix[i][j]);
+            // printf("%f ", conv_matrix[i][j]);
         }
-        printf("\n");
+        // printf("\n");
     }
-	int primero = 1;
+	// int primero = 1;
 
     for(int row = radius; row < rows - radius; row++){
         for(int col = radius; col < cols - radius; col++){
@@ -59,9 +59,9 @@ void blur_c(unsigned char *src, unsigned char *dst, int cols, int rows, float si
             dst_matrix[row][col * 4 + OFFSET_RED] = (unsigned char) red;
             dst_matrix[row][col * 4 + OFFSET_ALPHA] = 255;
 
-			if (!primero) continue;
-			primero = 0;
-        	printf("ESTE ES TU ENTERO PIBE %x %x %x %x\n", 255, (unsigned char) red, (unsigned char) green, (unsigned char) blue);
+			// if (!primero) continue;
+			// primero = 0;
+        	// printf("ESTE ES TU ENTERO PIBE %x %x %x %x\n", 255, (unsigned char) red, (unsigned char) green, (unsigned char) blue);
         }
     }
 }

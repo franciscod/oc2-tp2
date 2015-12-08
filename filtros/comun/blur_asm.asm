@@ -11,7 +11,7 @@ extern imprimir_mat
 %define PIXEL_SIZE  4
 %define PI          3.14159265358979323846
 
-%define DEBUG       1
+; %define DEBUG       1
 
 
 section .data
