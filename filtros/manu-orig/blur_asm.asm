@@ -12,14 +12,18 @@ extern imprimir_mat
 %define PI          3.14159265358979323846
 
 %define DEBUG       1
+;%define LAREKONCHA       1
 
 
 section .data
 
-    mask_blue:          db 0x0C, 0xFF, 0xFF, 0xFF, 0x08, 0xFF, 0xFF, 0xFF, 0x04, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF 
+    mask_blue:          db 0x0C, 0xFF, 0xFF, 0xFF, 0x08, 0xFF, 0xFF, 0xFF, 0x04, 0xFF, 0xFF, 0xFF, 0x00, 0xFF, 0xFF, 0xFF
     mask_green:         db 0x0D, 0xFF, 0xFF, 0xFF, 0x09, 0xFF, 0xFF, 0xFF, 0x05, 0xFF, 0xFF, 0xFF, 0x01, 0xFF, 0xFF, 0xFF
     mask_red:           db 0x0E, 0xFF, 0xFF, 0xFF, 0x0A, 0xFF, 0xFF, 0xFF, 0x06, 0xFF, 0xFF, 0xFF, 0x02, 0xFF, 0xFF, 0xFF
     format_hex:         db 'ESTE ES TU ENTERO PIBE %x', 10, 0
+    format_xy:          db 'X:%d;Y:%d;', 0
+    format_r_im:        db 'READ;B:0x%x;OFFSET:%d', 10, 0
+    format_w_im:        db 'WRITE;B:0x%x;OFFSET:%d', 10, 0
 
 section .text
 ;void blur_asm    (
@@ -35,8 +39,8 @@ blur_asm:
 
     ; rdi = puntero matriz entrada
     ; rsi = puntero matriz salida
-    ; rdx = filas
-    ; rcx = columnas
+    ; rdx = COLUMNAS
+    ; rcx = FILAS
     ; xmm0 = sigma
     ; r8 = radio
 
@@ -55,8 +59,8 @@ blur_asm:
 
     mov r12, rdi                                    ; r12 = puntero matriz entrada
     mov r13, rsi                                    ; r13 = puntero matriz salida
-    mov r14d, edx                                   ; r14 = filas
-    mov r15d, ecx                                   ; r15 = columnas
+    mov r14d, ecx                                   ; r14 = FILAS
+    mov r15d, edx                                   ; r15 = COLUMNAS
     mov ebx, r8d                                    ; rbx = radio
 
 	mov rdi, rbx
@@ -66,7 +70,7 @@ blur_asm:
 
 	; rdi puntero al inicio de la conv en imagen original
     ; rsi inicio matriz convolucion
-	; rdx cant columnas imagen 
+	; rdx cant columnas imagen
     ; rcx lado mat convolucion
 	; mov rdi, r12
 	; mov rsi, rax
@@ -77,7 +81,7 @@ blur_asm:
 	; call calcular_pixel
 
 	; en rax esta la convolucion del principio
-	
+
 	;recorro filas adentro del marquito
     mov r8, rbx                                      ; r8 = y            radio hasta filas - radio
     .filas:
@@ -103,7 +107,7 @@ blur_asm:
 
             ; rdi puntero al inicio de la conv en imagen original
             ; rsi inicio matriz convolucion
-            ; rdx cant columnas imagen 
+            ; rdx cant columnas imagen
             ; rcx lado mat convolucion
 
             mov r10, r8
@@ -136,10 +140,201 @@ blur_asm:
             pop r8
 
             ; guardo el pixel resultante en la matriz destino
+            %ifdef LAREKONCHA
+            push r8
+            push r9
+            push r10
+            push r11
+            push rax
+            push rdi
+            push rsi
+            push rdx
+            push rcx
+            sub rsp, 8
+            sub rsp, 16
+            movdqu [rsp], xmm0
+            sub rsp, 16
+            movdqu [rsp], xmm1
+            sub rsp, 16
+            movdqu [rsp], xmm2
+            sub rsp, 16
+            movdqu [rsp], xmm3
+            sub rsp, 16
+            movdqu [rsp], xmm4
+            sub rsp, 16
+            movdqu [rsp], xmm5
+            sub rsp, 16
+            movdqu [rsp], xmm6
+            sub rsp, 16
+            movdqu [rsp], xmm7
+            sub rsp, 16
+            movdqu [rsp], xmm8
+            sub rsp, 16
+            movdqu [rsp], xmm9
+            sub rsp, 16
+            movdqu [rsp], xmm10
+            sub rsp, 16
+            movdqu [rsp], xmm11
+            sub rsp, 16
+            movdqu [rsp], xmm12
+            sub rsp, 16
+            movdqu [rsp], xmm13
+            sub rsp, 16
+            movdqu [rsp], xmm14
+            sub rsp, 16
+            movdqu [rsp], xmm15
+
+                mov rdi, format_xy
+                mov rsi, r9
+                mov rdx, r8
+                call printf
+
+            movdqu xmm15, [rsp]
+            add rsp, 16
+            movdqu xmm14, [rsp]
+            add rsp, 16
+            movdqu xmm13, [rsp]
+            add rsp, 16
+            movdqu xmm12, [rsp]
+            add rsp, 16
+            movdqu xmm11, [rsp]
+            add rsp, 16
+            movdqu xmm10, [rsp]
+            add rsp, 16
+            movdqu xmm9, [rsp]
+            add rsp, 16
+            movdqu xmm8, [rsp]
+            add rsp, 16
+            movdqu xmm7, [rsp]
+            add rsp, 16
+            movdqu xmm6, [rsp]
+            add rsp, 16
+            movdqu xmm5, [rsp]
+            add rsp, 16
+            movdqu xmm4, [rsp]
+            add rsp, 16
+            movdqu xmm3, [rsp]
+            add rsp, 16
+            movdqu xmm2, [rsp]
+            add rsp, 16
+            movdqu xmm1, [rsp]
+            add rsp, 16
+            movdqu xmm0, [rsp]
+            add rsp, 16
+
+            add rsp, 8
+            pop rcx
+            pop rdx
+            pop rsi
+            pop rdi
+            pop rax
+            pop r11
+            pop r10
+            pop r9
+            pop r8
+            %endif
+
             mov r10, r8
             imul r10, r15
             add r10, r9                             ; r10 = posicion en la matriz destino
-            mov [r13 + r10 * PIXEL_SIZE], eax       ; guardo el pixel en: inicioMatDest + (y * columnas + x) * tamaño_pixel
+
+            shl r10, 2
+
+%ifdef LAREKONCHA
+            push r8
+            push r9
+            push r10
+            push r11
+            push rax
+            push rdi
+            push rsi
+            push rdx
+            push rcx
+            sub rsp, 8
+            sub rsp, 16
+            movdqu [rsp], xmm0
+            sub rsp, 16
+            movdqu [rsp], xmm1
+            sub rsp, 16
+            movdqu [rsp], xmm2
+            sub rsp, 16
+            movdqu [rsp], xmm3
+            sub rsp, 16
+            movdqu [rsp], xmm4
+            sub rsp, 16
+            movdqu [rsp], xmm5
+            sub rsp, 16
+            movdqu [rsp], xmm6
+            sub rsp, 16
+            movdqu [rsp], xmm7
+            sub rsp, 16
+            movdqu [rsp], xmm8
+            sub rsp, 16
+            movdqu [rsp], xmm9
+            sub rsp, 16
+            movdqu [rsp], xmm10
+            sub rsp, 16
+            movdqu [rsp], xmm11
+            sub rsp, 16
+            movdqu [rsp], xmm12
+            sub rsp, 16
+            movdqu [rsp], xmm13
+            sub rsp, 16
+            movdqu [rsp], xmm14
+            sub rsp, 16
+            movdqu [rsp], xmm15
+
+                mov rdi, format_w_im
+                mov rsi, r13
+                mov rdx, r10
+                call printf
+
+            movdqu xmm15, [rsp]
+            add rsp, 16
+            movdqu xmm14, [rsp]
+            add rsp, 16
+            movdqu xmm13, [rsp]
+            add rsp, 16
+            movdqu xmm12, [rsp]
+            add rsp, 16
+            movdqu xmm11, [rsp]
+            add rsp, 16
+            movdqu xmm10, [rsp]
+            add rsp, 16
+            movdqu xmm9, [rsp]
+            add rsp, 16
+            movdqu xmm8, [rsp]
+            add rsp, 16
+            movdqu xmm7, [rsp]
+            add rsp, 16
+            movdqu xmm6, [rsp]
+            add rsp, 16
+            movdqu xmm5, [rsp]
+            add rsp, 16
+            movdqu xmm4, [rsp]
+            add rsp, 16
+            movdqu xmm3, [rsp]
+            add rsp, 16
+            movdqu xmm2, [rsp]
+            add rsp, 16
+            movdqu xmm1, [rsp]
+            add rsp, 16
+            movdqu xmm0, [rsp]
+            add rsp, 16
+
+            add rsp, 8
+            pop rcx
+            pop rdx
+            pop rsi
+            pop rdi
+            pop rax
+            pop r11
+            pop r10
+            pop r9
+            pop r8
+            %endif
+
+            mov [r13 + r10], eax       ; guardo el pixel en: inicioMatDest + (y * columnas + x) * tamaño_pixel
 
             inc r9
             jmp .columnas
@@ -164,7 +359,7 @@ blur_asm:
 calcular_pixel:
 	; rdi puntero al inicio de la conv en imagen original
     ; rsi inicio matriz convolucion
-	; rdx cant columnas imagen 
+	; rdx cant columnas imagen
     ; rcx lado mat convolucion
 
 	; devuelve en rax el pixel resultante como 4 bytes BGRA
@@ -177,9 +372,9 @@ calcular_pixel:
 	push r15
 	mov r12, rdi ; puntero al inicio de la conv en imagen original
 	mov r13, rsi ; inicio matriz convolucion
-	mov r14, rdx ; cant columnas imagen 
+	mov r14, rdx ; cant columnas imagen
 	mov r15, rcx ; lado mat convolucion (2r+1)
-    
+
 
 	; %ifdef DEBUG
 	; 		mov rdi, r13
@@ -188,7 +383,7 @@ calcular_pixel:
 	; 		call imprimir_mat
 	; %endif
 
-	;                                                       0123      
+	;                                                       0123
 	; devuelve en rax el valor de la convolucion como pixel BGRA
 
 	; Voy a usar estos registros para acumular las componentes
@@ -196,11 +391,11 @@ calcular_pixel:
 
 
     ; Seteo unas mascaras para separar las componentes
-    movdqu xmm13, [mask_blue]            
+    movdqu xmm13, [mask_blue]
     movdqu xmm14, [mask_green]
     movdqu xmm15, [mask_red]
 
-    xor r8, r8                                  ; r8 = indice fila 
+    xor r8, r8                                  ; r8 = indice fila
     .filas:
 	; esto procesa 1 fila
         cmp r8, r15
@@ -210,15 +405,203 @@ calcular_pixel:
         .columnas:
 		; esto procesa 4 pixels de una fila (o 3 o 1)
 
+%ifdef LAREKONCHA
+            push r8
+            push r9
+            push r10
+            push r11
+            push rax
+            push rdi
+            push rsi
+            push rdx
+            push rcx
+            sub rsp, 8
+            sub rsp, 16
+            movdqu [rsp], xmm0
+            sub rsp, 16
+            movdqu [rsp], xmm1
+            sub rsp, 16
+            movdqu [rsp], xmm2
+            sub rsp, 16
+            movdqu [rsp], xmm3
+            sub rsp, 16
+            movdqu [rsp], xmm4
+            sub rsp, 16
+            movdqu [rsp], xmm5
+            sub rsp, 16
+            movdqu [rsp], xmm6
+            sub rsp, 16
+            movdqu [rsp], xmm7
+            sub rsp, 16
+            movdqu [rsp], xmm8
+            sub rsp, 16
+            movdqu [rsp], xmm9
+            sub rsp, 16
+            movdqu [rsp], xmm10
+            sub rsp, 16
+            movdqu [rsp], xmm11
+            sub rsp, 16
+            movdqu [rsp], xmm12
+            sub rsp, 16
+            movdqu [rsp], xmm13
+            sub rsp, 16
+            movdqu [rsp], xmm14
+            sub rsp, 16
+            movdqu [rsp], xmm15
+
+                mov rdi, format_xy
+                mov rsi, r9
+                mov rdx, r8
+                call printf
+
+            movdqu xmm15, [rsp]
+            add rsp, 16
+            movdqu xmm14, [rsp]
+            add rsp, 16
+            movdqu xmm13, [rsp]
+            add rsp, 16
+            movdqu xmm12, [rsp]
+            add rsp, 16
+            movdqu xmm11, [rsp]
+            add rsp, 16
+            movdqu xmm10, [rsp]
+            add rsp, 16
+            movdqu xmm9, [rsp]
+            add rsp, 16
+            movdqu xmm8, [rsp]
+            add rsp, 16
+            movdqu xmm7, [rsp]
+            add rsp, 16
+            movdqu xmm6, [rsp]
+            add rsp, 16
+            movdqu xmm5, [rsp]
+            add rsp, 16
+            movdqu xmm4, [rsp]
+            add rsp, 16
+            movdqu xmm3, [rsp]
+            add rsp, 16
+            movdqu xmm2, [rsp]
+            add rsp, 16
+            movdqu xmm1, [rsp]
+            add rsp, 16
+            movdqu xmm0, [rsp]
+            add rsp, 16
+
+            add rsp, 8
+            pop rcx
+            pop rdx
+            pop rsi
+            pop rdi
+            pop rax
+            pop r11
+            pop r10
+            pop r9
+            pop r8
+            %endif
+
 			mov r10, r8
 			imul r10, r14 ; cant columnas imagen
 			add r10, r9
 			shl r10, 2 ; multiplicamos por 16 el offset
 
-			mov r11, r8	
+			mov r11, r8
 			imul r11, r15 ; lado mat convolucion
 			add r11, r9
 			shl r11, 2 ; multiplicamos por 4 el offset
+
+%ifdef LAREKONCHA
+            push r8
+            push r9
+            push r10
+            push r11
+            push rax
+            push rdi
+            push rsi
+            push rdx
+            push rcx
+            sub rsp, 8
+            sub rsp, 16
+            movdqu [rsp], xmm0
+            sub rsp, 16
+            movdqu [rsp], xmm1
+            sub rsp, 16
+            movdqu [rsp], xmm2
+            sub rsp, 16
+            movdqu [rsp], xmm3
+            sub rsp, 16
+            movdqu [rsp], xmm4
+            sub rsp, 16
+            movdqu [rsp], xmm5
+            sub rsp, 16
+            movdqu [rsp], xmm6
+            sub rsp, 16
+            movdqu [rsp], xmm7
+            sub rsp, 16
+            movdqu [rsp], xmm8
+            sub rsp, 16
+            movdqu [rsp], xmm9
+            sub rsp, 16
+            movdqu [rsp], xmm10
+            sub rsp, 16
+            movdqu [rsp], xmm11
+            sub rsp, 16
+            movdqu [rsp], xmm12
+            sub rsp, 16
+            movdqu [rsp], xmm13
+            sub rsp, 16
+            movdqu [rsp], xmm14
+            sub rsp, 16
+            movdqu [rsp], xmm15
+
+                mov rdi, format_r_im
+                mov rsi, r12
+                mov rdx, r10
+                call printf
+
+            movdqu xmm15, [rsp]
+            add rsp, 16
+            movdqu xmm14, [rsp]
+            add rsp, 16
+            movdqu xmm13, [rsp]
+            add rsp, 16
+            movdqu xmm12, [rsp]
+            add rsp, 16
+            movdqu xmm11, [rsp]
+            add rsp, 16
+            movdqu xmm10, [rsp]
+            add rsp, 16
+            movdqu xmm9, [rsp]
+            add rsp, 16
+            movdqu xmm8, [rsp]
+            add rsp, 16
+            movdqu xmm7, [rsp]
+            add rsp, 16
+            movdqu xmm6, [rsp]
+            add rsp, 16
+            movdqu xmm5, [rsp]
+            add rsp, 16
+            movdqu xmm4, [rsp]
+            add rsp, 16
+            movdqu xmm3, [rsp]
+            add rsp, 16
+            movdqu xmm2, [rsp]
+            add rsp, 16
+            movdqu xmm1, [rsp]
+            add rsp, 16
+            movdqu xmm0, [rsp]
+            add rsp, 16
+
+            add rsp, 8
+            pop rcx
+            pop rdx
+            pop rsi
+            pop rdi
+            pop rax
+            pop r11
+            pop r10
+            pop r9
+            pop r8
+            %endif
 
 			movdqu xmm3, [r12+r10]                  ; xmm1 = vector imagen entrada
 			.pepito:
@@ -248,7 +631,7 @@ calcular_pixel:
 			jl .dpps_1
 
 			; ahora llamamos a esta funcion que tiene toda la posta (?)
-			; hace el producto interno entre los dos parametros y segun el inmediato que le pasas 
+			; hace el producto interno entre los dos parametros y segun el inmediato que le pasas
 			; despues definis que componentes se usan y a donde manda el resultado
 
 			.dpps_4:
@@ -289,7 +672,7 @@ calcular_pixel:
         jmp .filas
 
 	.fin_filas:
-	
+
 	; Los redondeo a byte
 	cvtps2dq xmm0, xmm0
 
@@ -299,7 +682,7 @@ calcular_pixel:
 	packuswb xmm0, xmm1
 
 	xor rax, rax
-	movd eax, xmm0	
+	movd eax, xmm0
 	or eax, 0xFF000000 ; clava el alpha en 255
 
 	%ifdef DEBUG
@@ -348,10 +731,10 @@ generar_matriz_convolucion:
     imul rdi, FLOAT_SIZE
 
     ; Reservo memoria para la matriz de convolucion
-    call malloc                                     
+    call malloc
 	mov rbx, rax	; rbx = puntero a la matriz de convolucion
-	
-    
+
+
     ; Genero la matriz de convolucion
 
     xor r14, r14                                      ; r14 = indice fila
