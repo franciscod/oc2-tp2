@@ -148,24 +148,28 @@ Cada pixel tiene 4 componentes, cada una ocupa un byte, por lo que cada pixel oc
 
 Para calcular el valor final de cada pixel, nuestra implementación usa 2 indices que representaran la posición actual (x,y) y que utilizamos para recorrer los vecinos. Dentro de el ciclo del recorrido, lee de memoria 4 pixeles y los almacena en un registro xmm para luego copiarlo en otros 3 que usaremos para separarlos por componente (no son 4 ya que la componente alpha tiene como valor 255 siempre).
 
+% \begin{codesnippet}
+% \begin{verbatim}
 	
 	
 
+% \end{verbatim}
+% \end{codesnippet}
 
-\section{Observaciones}
-	\includegraphics[keepaspectratio]{gen/diff.png}
-	\begin{enumerate}
-		\item un item
-		\item otro item
-	\end{enumerate}
+% \section{Observaciones}
+% 	\includegraphics[keepaspectratio]{gen/diff.png}
+% 	\begin{enumerate}
+% 		\item un item
+% 		\item otro item
+% 	\end{enumerate}
 
-\section{Resolución}
+% \section{Resolución}
 
-\vspace*{0.3cm}
-$xmm0=  0|b_{sup1}$ $g_{sup1}$ $r_{sup1}$ $a_{sup1}$ 
+% \vspace*{0.3cm}
+% $xmm0=  0|b_{sup1}$ $g_{sup1}$ $r_{sup1}$ $a_{sup1}$ 
 
-% \subsection{Ejercicio X}
+% % \subsection{Ejercicio X}
 
-\subsection{Auxiliares}
+% \subsection{Auxiliares}
 
 \end{document}
