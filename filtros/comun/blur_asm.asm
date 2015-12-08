@@ -5,6 +5,7 @@ global blur_asm
 extern malloc, free
 extern printf
 extern G_sigma
+extern calcular_pixel_c
 extern imprimir_mat
 
 %define FLOAT_SIZE  4
@@ -127,7 +128,7 @@ blur_asm:
             imul rcx, 2
             inc rcx
 
-            call calcular_pixel                     ; devuelve en rax el pixel resultante como 4 bytes BGRA
+            call calcular_pixel_c                     ; devuelve en rax el pixel resultante como 4 bytes BGRA
 
             add rsp, 8
             pop r11
@@ -288,7 +289,7 @@ calcular_pixel:
 
 	.fin_filas:
 
-	; Los redondeo a byte
+	; Los convierto a formato int de 4bytes (dword)
 	cvtps2dq xmm0, xmm0
 
 	; empaquetamos
