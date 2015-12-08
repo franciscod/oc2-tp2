@@ -1,7 +1,7 @@
 # modo de uso:
 # ./switch.sh <directorio del cual traer>
-# por ejemplo, para seleccionar y compilar las implementaciones en el directorio filtros/gabriel-orig/
-# ./switch.sh gabriel-orig
+# por ejemplo, para seleccionar y compilar las implementaciones en el directorio filtros/comun/
+# ./switch.sh comun
 #
 
 BASE_PATH=./filtros/
