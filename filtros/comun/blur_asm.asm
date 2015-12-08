@@ -139,10 +139,7 @@ blur_asm:
             mov r10, r8
             imul r10, r15
             add r10, r9                             ; r10 = posicion en la matriz destino
-
-            shl r10, 2
-
-            mov [r13 + r10], eax       ; guardo el pixel en: inicioMatDest + (y * columnas + x) * tamaño_pixel
+            mov [r13 + r10*PIXEL_SIZE], eax       ; guardo el pixel en: inicioMatDest + (y * columnas + x) * tamaño_pixel
 
             inc r9
             jmp .columnas
@@ -216,16 +213,14 @@ calcular_pixel:
 			mov r10, r8
 			imul r10, r14 ; cant columnas imagen
 			add r10, r9
-			shl r10, 2 ; multiplicamos por 16 el offset
 
 			mov r11, r8
 			imul r11, r15 ; lado mat convolucion
 			add r11, r9
-			shl r11, 2 ; multiplicamos por 4 el offset
 
-			movdqu xmm3, [r12+r10]                  ; xmm1 = vector imagen entrada
+			movdqu xmm3, [r12+r10*PIXEL_SIZE]                  ; xmm1 = vector imagen entrada
 			.pepito:
-			movups xmm4, [r13+r11]                  ; lee 4 floats de convolucion desalineado
+			movups xmm4, [r13+r11*FLOAT_SIZE]                  ; lee 4 floats de convolucion desalineado
 
 
 			; Agrupo por componente (todos los azules por un lado...) usando un shuffle
