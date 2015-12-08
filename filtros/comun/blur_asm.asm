@@ -222,7 +222,7 @@ calcular_pixel:
 			imul r11, r15 ; lado mat convolucion
 			add r11, r9
 
-			movdqu xmm3, [r12+r10*PIXEL_SIZE]                  ; xmm1 = vector imagen entrada
+			movdqu xmm3, [r12+r10*PIXEL_SIZE]                  ; xmm3 = vector imagen entrada
 			movups xmm4, [r13+r11*FLOAT_SIZE]                  ; lee 4 floats de convolucion desalineado
 
 

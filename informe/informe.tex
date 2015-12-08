@@ -148,13 +148,54 @@ Cada pixel tiene 4 componentes, cada una ocupa un byte, por lo que cada pixel oc
 
 Para calcular el valor final de cada pixel, nuestra implementación usa 2 indices que representaran la posición actual (x,y) y que utilizamos para recorrer los vecinos. Dentro de el ciclo del recorrido, lee de memoria 4 pixeles y los almacena en un registro xmm para luego copiarlo en otros 3 que usaremos para separarlos por componente (no son 4 ya que la componente alpha tiene como valor 255 siempre).
 
-% \begin{codesnippet}
-% \begin{verbatim}
+\begin{codesnippet}
+\begin{verbatim}
 	
-	
+movdqu xmm3, [r12+r10*PIXEL_SIZE]   ; xmm3 = vector imagen entrada
+                                    ; r12  = puntero de la imagen de entrada
+                                    ; r10  = posicion en la imagen d entrada
 
-% \end{verbatim}
-% \end{codesnippet}
+movdqu xmm5, xmm3                   ; xmm5 va a contener solo las componentes azules
+movdqu xmm6, xmm3                   ; xmm6 va a contener solo las componentes verdes
+movdqu xmm7, xmm3                   ; xmm7 va a contener solo las componentes rojas	
+
+; xmm13, xmm14 y xmm15 contienen mascaras para hacer el shuffle
+pshufb xmm5, xmm13                  ; xmm5 = B0 0 0 0 B1 0 0 0 B2 0 0 0 B3 0 0 0
+pshufb xmm6, xmm14                  ; xmm6 = G0 0 0 0 G1 0 0 0 G2 0 0 0 G3 0 0 0
+pshufb xmm7, xmm15                  ; xmm7 = R0 0 0 0 R1 0 0 0 R2 0 0 0 R3 0 0 0
+
+; Convierto a float
+cvtdq2ps xmm5, xmm5
+cvtdq2ps xmm6, xmm6
+cvtdq2ps xmm7, xmm7
+
+\end{verbatim}
+\end{codesnippet}
+
+En este punto tenemos separadas las componentes de los 4 pixeles en 3 registros distintos (uno por componente). Resta multiplicarlas por las posiciones correspondientes de la matriz de convolucion y acumularlas. \\
+
+Para ello usamos la instruccion dpps. Esta instrucción toma 3 parametros: el registro destino, el registro fuente y un inmediato de un byte. Hace el prouducto interno entre ambos registros, y según el inmediato se define cuales de las 4 posiciones se emplean para hacer la cuenta y en cuál se almacena. El nibble más significativo indica qué cuentas se hacen, por ejemplo F se toman todas y 5 sólo la primera y tercera. El nibble menos significativo indica la posición en la que se almacena. \\
+
+Lo conveniente de esta instruccion es que nos permite hacer las sumas de los productos simultáneamente y almacenarla donde queramos dentro del registro. Esto es muy bueno ya que podemos almacenarla en posiciones distintas dependiendo de que componente estemos computando, para despues sumar los 3 registros en uno y que nos quede el pixel.
+
+También es muy útil para poder manipular la lecura de los ultimos valores de la matriz. Ya que leemos de a 4, pero en el ultimo caso de cada fila podemos estar queriendo computar 3 o 1 pixel. Esta instrucción nos lo facilita ya que podemos indicar cuales tener en cuenta para el producto interno y cuales no. \\
+
+\begin{codesnippet}
+\begin{verbatim}
+
+; Voy multiplicando 4 vs 4 entre convolucion y componente k de cada pixel
+dpps xmm5, xmm4, 0xF1               ; en xmm4 tengo los 4 valores correspondientes
+dpps xmm6, xmm4, 0xF2               ; de la matriz de convolucion
+dpps xmm7, xmm4, 0xF4
+
+addps xmm0, xmm5                    ; xmm0 contendra mi pixel final
+addps xmm0, xmm6
+addps xmm0, xmm7
+
+\end{verbatim}
+\end{codesnippet}
+
+Una vez calculado el pixel, convierte los valores del registro xmm0 en formato int de 4bytes, lo empaqueta y le agrega el valor de alpha, que es 255. Finalmente lo guarda en la matriz de salida
 
 % \section{Observaciones}
 % 	\includegraphics[keepaspectratio]{gen/diff.png}
