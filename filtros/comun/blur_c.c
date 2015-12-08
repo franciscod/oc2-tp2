@@ -41,22 +41,24 @@ void blur_c(unsigned char *src, unsigned char *dst, int cols, int rows, float si
     for(int row = radius; row < rows - radius; row++){
         for(int col = radius; col < cols - radius; col++){
             // Hago la sumatoria
-            float blue = 0;
-            float green = 0;
-            float red = 0;
+            float blue = 0.0;
+            float green = 0.0;
+            float red = 0.0;
             for(int x = -radius; x <= radius; x++){
                 for(int y = -radius; y <= radius; y++){
-                    blue += (float) (src_matrix[row + y][(col + x) * 4 + OFFSET_BLUE]) * conv_matrix[radius - y][radius - x];
-                    green += (float) (src_matrix[row + y][(col + x) * 4 + OFFSET_GREEN]) * conv_matrix[radius - y][radius - x];
-                    red += (float) (src_matrix[row + y][(col + x) * 4 + OFFSET_RED]) * conv_matrix[radius - y][radius - x];
+                    blue  += ((float) src_matrix[row + y][(col + x) * 4 + OFFSET_BLUE]) * conv_matrix[radius - y][radius - x];
+                    green += ((float) src_matrix[row + y][(col + x) * 4 + OFFSET_GREEN]) * conv_matrix[radius - y][radius - x];
+                    red   += ((float) src_matrix[row + y][(col + x) * 4 + OFFSET_RED]) * conv_matrix[radius - y][radius - x];
                     // printf("%f %f %f\n", (float) (src_matrix[row + y][(col + x) * 4 + OFFSET_GREEN]), conv_matrix[radius - y][radius - x], green);
                 }
             }
-
+            // blue = blue > 255 ? 255 : (blue < 0 ? 0 : blue);
+            // green = green > 255 ? 255 : (green < 0 ? 0 : green);
+            // red = red > 255 ? 255 : (red < 0 ? 0 : red);
             // printf("%f %f %f\n", blue, green, red);
-            dst_matrix[row][col * 4 + OFFSET_BLUE] = (unsigned char) blue;
-            dst_matrix[row][col * 4 + OFFSET_GREEN] = (unsigned char) green;
-            dst_matrix[row][col * 4 + OFFSET_RED] = (unsigned char) red;
+            dst_matrix[row][col * 4 + OFFSET_BLUE] = (unsigned char) roundf(blue);
+            dst_matrix[row][col * 4 + OFFSET_GREEN] = (unsigned char) roundf(green);
+            dst_matrix[row][col * 4 + OFFSET_RED] = (unsigned char) roundf(red);
             dst_matrix[row][col * 4 + OFFSET_ALPHA] = 255;
 
 			// if (!primero) continue;

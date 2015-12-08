@@ -1,4 +1,4 @@
-#USO: sh probador.sh filtro <parametros del filtro> <sigma del bmpdiff>
+#USO: sh probador.sh <filtro> <imagen> <parametros del filtro> <sigma del bmpdiff>
 if [ $1 = "diff" ]; then
 	./build/tp2 -i asm diff $2 $3
 	./build/tp2 -i c diff $2 $3
