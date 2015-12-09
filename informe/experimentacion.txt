@@ -1,24 +1,37 @@
 x1000 diff c   lena24 colores24 		= 11413881
 x1000 diff asm lena24 colores24 		= 1003030
+No hay diferencias
 
 x1000 diff c   lena32 colores32 		= 11382588
 x1000 diff asm lena32 colores32 		= 992484
+No hay diferencias
 
 x1000 diff c   scene0 scene400 			= 21212012
 x1000 diff asm scene0 scene400 			= 1985493
+No hay diferencias
 
 x1000 diff c   CONVscene CONVscene400 	= 21231368
 x1000 diff asm CONVscene CONVscene400 	= 1945705
+No hay diferencias
 
 
 x1000 blur c   lena24 		5 15 	= 6652537344
 x1000 blur asm lena24 		5 15	= 812709312
+Diferencias:
+1 28
 
 x100  blur c   lena32 		5 15	= 4868047360
 x1000 blur asm lena32 		5 15	= 815566272
+Diferencias:
+1 28
 
 x100  blur c   scene0 		5 15	= 9140637696
 x100  blur asm scene0 		5 15	= 1174508032
+Diferencias:
+1 63
 
 x100  blur c   CONVscene    5 15	= 9568850944
 x100  blur asm CONVscene    5 15	= 1170495744
+Diferencias:
+1 63
+
