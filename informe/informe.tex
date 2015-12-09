@@ -99,12 +99,12 @@ ASM vs ASM
 
 \subsection{Introducción}
 
-\textit{Diff} es un filtro que genera una imágen que, por medio de una escala de grises, indica dónde difieren las imágenes y qué tanto.
+\textit{Diff} es un filtro que genera una imagen que, por medio de una escala de grises, indica dónde difieren las imágenes y qué tanto.
 El valor del gris está dado por la maxima diferencia entre las componentes de los pixeles de ambas imágenes
 
 \subsection{Implementación en C}
 
-Se tienen dos indices (x e y) para recorrer las imagenes. Dentro del ciclo, para cada para de pixeles se calculan las diferencias entre las componentes y se toma la maxima. Luego se almacena 255 en alpha y el valor calculado en las otras 3 componentes en la imágen de salida. \\
+Se tienen dos indices (x e y) para recorrer las imágenes. Dentro del ciclo, para cada para de pixeles se calculan las diferencias entre las componentes y se toma la maxima. Luego se almacena 255 en alpha y el valor calculado en las otras 3 componentes en la imagen de salida. \\
 
 Este es el pseudocódigo para cada iteración del ciclo:
 
@@ -123,19 +123,99 @@ dst_matrix[y][x+A] = 255;
 \end{verbatim}
 \end{codesnippet}
 
+\subsection{Implementación en ASM}
+
+La implementación en ASM consiste en aprovechar las instrucciones SSE para poder leer de a 4 pixeles. Como debemos restar las componentes, es necesario desempaquetar esos 4 pixeles, es decir pasarlos a 2 registros donde podamos manejar cada componente como word, no como byte. Ya que de otra forma podríamos estar perdiendo información. Esto hace que por mas que podamos leer de a 4, solo podamos computar de a 2 en simultáneo.
+
+\begin{codesnippet}
+\begin{verbatim}
+
+; Traigo 4 pixeles de cada imagen desde la memoria
+movups xmm1, [rdi]     ; rdi = puntero a imagen 1
+movups xmm2, [rsi]     ; rsi = puntero a imagen 2
+
+; Desempaqueto los pixeles para poder hacer la resta sin perder informacion
+movups xmm3, xmm1
+movups xmm4, xmm2
+
+punpcklbw xmm1, xmm5   ; xmm5 esta limpio para 
+punpckhbw xmm3, xmm5
+
+punpcklbw xmm2, xmm5
+punpckhbw xmm4, xmm5
+
+\end{verbatim}
+\end{codesnippet}
+
+Luego procede a hacer la resta entre las componentes, obtener su valor absoluto y empaquetarlo en un único registro
+
+\begin{codesnippet}
+\begin{verbatim}
+
+; Resto los pixeles de ambas imágenes. El resultado queda en xmm1 y xmm3
+psubw xmm1, xmm2
+psubw xmm3, xmm4
+
+; Obtengo el valor absoluto de la resta de los pixeles
+pabsw xmm1, xmm1
+pabsw xmm3, xmm3
+
+; Empaqueto el resultado nuevamente en un solo registro.
+packuswb xmm1, xmm3
+
+\end{verbatim}
+\end{codesnippet}
+
+Para buscar la máxima diferencia es necesario hacer una copia del registro, comparar un canal con el otro, y el resultado compararlo con el canal restante
+
+\begin{codesnippet}
+\begin{verbatim}
+
+; Copio xmm1 en xmm2 para poder buscar el maximo
+movups xmm2, xmm1
+
+; Comparo el canal R con el canal G y luego el resultado lo comparo con el canal B
+psrldq xmm2, 1		; Me muevo un byte a la derecha
+pmaxub xmm1, xmm2
+psrldq xmm2, 1		; Me muevo un byte a la derecha
+pmaxub xmm1, xmm2
+
+; Pongo el maximo que hasta ahora tengo en el canal R de cada pixel en todos los canales
+pshufb xmm1, xmm7   ; xmm es la mascara que distribuye el valor del maximo en 
+                    ; todas las componentes
+
+\end{verbatim}
+\end{codesnippet}
+
+Finalmente se inserta el alpha con valor 255 y se guarda
+
+\begin{codesnippet}
+\begin{verbatim}
+
+pinsrb xmm1, eax, 3     ; eax = 255
+pinsrb xmm1, eax, 7
+pinsrb xmm1, eax, 11
+pinsrb xmm1, eax, 15
+
+; Muevo los pixeles con el filtro aplicado a dst
+movups [r9], xmm1       ; r9 = puntero a imagen destino
+
+\end{verbatim}
+\end{codesnippet}
+
 \section{Blur}
 
 \subsection{Introducción}
 
-\textit{Blur} es un filtro que suaviza una imagen. Consta de asignarle a cada componente de la imágen de salida el promedio de la vecindad del mismo en la imágen original. En este trabajo práctico tomaremos el promedio ponderado, para lograr un desenfoque más natural. Se lo llama \textit{Blur Gaussiano} ya que la matriz que se utiliza para calcular este promedio es calculada a partir de una función Gaussiana. \\
+\textit{Blur} es un filtro que suaviza una imagen. Consta de asignarle a cada componente de la imagen de salida el promedio de la vecindad del mismo en la imagen original. En este trabajo práctico tomaremos el promedio ponderado, para lograr un desenfoque más natural. Se lo llama \textit{Blur Gaussiano} ya que la matriz que se utiliza para calcular este promedio es calculada a partir de una función Gaussiana. \\
 
-Los bordes de la imágen no se veran afectados por el filtro ya que en esas posiciones de la imagen no se puede tomar la cantidad de vecinos necesaria. \\
+Los bordes de la imagen no se veran afectados por el filtro ya que en esas posiciones de la imagen no se puede tomar la cantidad de vecinos necesaria. \\
 
 (PODRIA HABLAR DE LOS PARAMETROS QUE TOMA EL BLUR)
 
 \subsection{Implementación en C}
 
-En la implementación en C, el cálculo de cada pixel consiste en recorrer los pixeles vecinos utilizando dos índices (x e y), acumular el valor del producto entre cada una de las componentes del pixel y el valor correspondiente de la matriz de convolución, y una vez terminado el recorrido, escribir en la imágen de salida el resultado acumulado para cada una de las componentes. \\
+En la implementación en C, el cálculo de cada pixel consiste en recorrer los pixeles vecinos utilizando dos índices (x e y), acumular el valor del producto entre cada una de las componentes del pixel y el valor correspondiente de la matriz de convolución, y una vez terminado el recorrido, escribir en la imagen de salida el resultado acumulado para cada una de las componentes. \\
 
 Este es el pseudocódigo de cada iteración del ciclo:
 
@@ -169,7 +249,7 @@ dst_matrix[row][col * 4 + OFFSET_ALPHA] = 255;
 \subsection{Implementación 1 en ASM}
 
 La primera implementación en ASM consiste en procesar el pixel recorriendo la matriz de convolucion fila por fila, cada una de izquierda a derecha.
-Calcula un pixel de la imágen de salida a la vez. La ventaja que sacamos de las instrucciones SSE es que para procesar cada fila podemos computar 4 pixeles de la imágen de entrada simultáneamente. \\
+Calcula un pixel de la imagen de salida a la vez. La ventaja que sacamos de las instrucciones SSE es que para procesar cada fila podemos computar 4 pixeles de la imagen de entrada simultáneamente. \\
 
 Cada pixel tiene 4 componentes, cada una ocupa un byte, por lo que cada pixel ocupa 4 bytes. Dentro de los registros xmm podemos almacenar hasta 16 bytes, por lo que es posible guardar dentro el valor de 4 pixeles. De esta forma podemos obtener el valor de 4 pixeles que serán procesados acorde al uso del modelo SIMD. \\
 
