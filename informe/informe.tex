@@ -304,6 +304,24 @@ addps xmm0, xmm7
 
 Una vez calculado el pixel, convierte los valores del registro xmm0 en formato int de 4bytes, lo empaqueta y le agrega el valor de alpha, que es 255. Finalmente lo guarda en la matriz de salida
 
+\section{Resultados}
+
+\subsection{Mediciones}
+
+Realizar una medición de performance \emph{rigurosa} es más difícil de lo que parece. En este experimento deberá realizar distintas mediciones de performance para verificar que sean buenas mediciones. \\
+
+En un sistema ``ideal'' el proceso medido corre solo, sin ninguna interferencia de agentes externos. Sin embargo, una PC no es un sistema ideal. Nuestro proceso corre junto con decenas de otros, tanto de usuarios como del sistema operativo que compiten por el uso de la CPU. Esto implica que al realizar mediciones aparezcan ``ruidos'' o ``interferencias'' que distorsionen los resultados. \\
+
+El primer paso para tener una idea de si la medición es buena o no, es tomar varias muestras. Es decir, repetir la misma medición varias veces.Luego de eso, es conveniente descartar los outliers, que son los valores que más se alejan del promedio. Con los valores de las mediciones resultantes se puede calcular el promedio y también la varianza, que es algo similar el promedio de las distancias al promedio. \\
+
+Las fórmulas para calcular el promedio $\mu$ y la varianza $\sigma^2$ son
+
+$$
+\mu = \frac{1}{n}\sum_{i=1}^{n} x_i \qquad \sigma^2 = \frac{\displaystyle\sum_{i=1}^{n}(x_i - \mu)^2} {n}
+$$
+
+
+
 % \section{Observaciones}
 % 	\includegraphics[keepaspectratio]{gen/diff.png}
 % 	\begin{enumerate}
