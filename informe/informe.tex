@@ -307,7 +307,7 @@ Una vez calculado el pixel, convierte los valores del registro xmm0 en formato i
 
 \section{Resultados}
 
-Se realizaron una serie de experimentos para poder conocer qué ventajas presenta el uso del modelo SIMD. Para ello comparamos sobre ambos filtros las implementaciones hechas en lenguage ensamblador, que aprovechan las instrucciones SSE, y las hechas en C, que no tienen esta ventaja. \\
+Se realizaron una serie de experimentos para poder conocer qué ventajas presenta el uso del modelo SIMD. Para ello comparamos sobre ambos filtros las implementaciones hechas en lenguaje ensamblador, que aprovechan las instrucciones SSE, y las hechas en C, que no tienen esta ventaja. \\
 
 Las hipótesis para ambos filtros no varía.
 
@@ -327,7 +327,7 @@ $$
 
 \subsection{Diferencias de performance en Diff}
 
-Hipótesis: La velocidad de la ejecución del filtro implementado en lenguage ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
+Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
 
 Se corrieron ambas implementaciones 1000 veces utilizando 5 pares de imágenes de tamaños: 120 x 120, 512 x 512, 800 x 600 y 640 x 400. \\
 
@@ -341,11 +341,11 @@ Se compararon pixel a pixel las imágenes de salida generadas por ambas implemen
 
 \subsection{Diferencias de performance en Blur}
 
-Hipótesis: La velocidad de la ejecución del filtro implementado en lenguage ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
+Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
 
 Se corrieron ambas implementaciones 100 veces utilizando 5 pares de imágenes de tamaños: 120 x 120, 512 x 512, 800 x 600 y 640 x 400. Decidimos bajar el numero de repeticiones con respecto al filtro \textit{Diff} ya que este filtro demora más en generar un resultado.\\
 
-Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Blur} fueron importantes, aunque no tanto como lo fueron para el filtro \textit{Diff}. La hipótesis, una vez más, fue incorrecta. El filtro implementado en lenguage ensamblador nuevamente superó con gran amplitud al implementado en C, ejecutándose alrededor de 9 veces mas rápido. 
+Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Blur} fueron importantes, aunque no tanto como lo fueron para el filtro \textit{Diff}. La hipótesis, una vez más, fue incorrecta. El filtro implementado en lenguaje ensamblador nuevamente superó con gran amplitud al implementado en C, ejecutándose alrededor de 9 veces mas rápido. 
 
 (GRAFICO)
 
@@ -353,6 +353,18 @@ Las diferencias de performance temporal de las implementaciones en cuanto al fil
 
 Una vez más comparamos las imágenes de salida generadas por ambas implementaciones y esta vez sí obtuvimos diferencias. Si bien eran casi imperceptibles para el ojo humano, en cada imagen encontramos dos pares de pixeles que diferían entre sí por un valor de 1 en alguna componente del color. (FRAN ACA PODES AGREGAR MUCHA DE ESA POSTA QUE TIRASTE POR HANGOUT)
 
+\subsection{Optimización O3 para la implementación en C}
+
+En el momento de compilar el programa, existe un parametro que controla el nivel de optimización en el código. Al cambiar este valor, la compilación de código tomará algo más de tiempo, y utilizará mucha más memoria, especialmente al incrementar el nivel de optimización. Hablamos de la variable -O. Existen siete ajustes para -O: -O0, -O1, -O2, -O3, -Os, -Og y -Ofast. \\
+
+Con motivo de comparar que tanto es posible optimizar el código, y si en verdad lleva a una mejoría en la performance, compilamos los filtros con la optimización -O3 y registramos su el tiempo en ciclos de clock que toma cada uno. \\
+
+-O3 es el nivel más alto de optimización posible. Activa opitimizaciones que son caras en términos de tiempo de compilación y uso de memoria. Aún así, no garantiza una forma de mejorar el rendimiento y, de hecho, en muchos casos puede ralentizar un sistema debido al uso de binarios de gran tamaño y mucho uso de la memoria. También se sabe que -O3 puede romper algunos paquetes por lo que no es recomendado su uso, pero justamente para conocer cuánto valen estos riesgos es que llevamos adelante este experimento. \\
+
+Los resultados que obtuvimos fueron los esperados. Este nivel de optimización reflejó una mejora en la velocidad del algoritmo, pero no la suficiente como para vencer a la implementación en lenguaje ensamblador.
+
+(GRAFICO)
+.
 \section{Figura de prueba}
 % Bar charts
 % Author: Stefan Kottwitz
