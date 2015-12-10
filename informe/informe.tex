@@ -69,7 +69,7 @@ Antes de medir tiempos y sacar conclusiones de los mismos, es importante tener u
 \textit{Memoria RAM:} 8 GB \\
 \textit{Sistema operativo:} Ubuntu 14.04 64 bits. \\
 
-Las mediciones se realizaron corriendo los filtros X veces cada uno. Se realizó un promedio, y estos promedios son los que se pueden apreciar en los distintos gráficos. Los tiempos están medidos en ciclos de clock.
+Las mediciones se realizaron corriendo los filtros 1000 veces para el \textit{Diff} y 100 para el \textit{Blur}. Se realizó un promedio, y estos promedios son los que se pueden apreciar en los distintos gráficos. Los tiempos están medidos en ciclos de clock.
 
 \section{Experimentación}
 
@@ -319,7 +319,7 @@ Realizar una medición de performance \emph{rigurosa} es más difícil de lo que
 
 En un sistema ``ideal'' el proceso medido corre solo, sin ninguna interferencia de agentes externos. Sin embargo, una PC no es un sistema ideal. Nuestro proceso corre junto con decenas de otros, tanto de usuarios como del sistema operativo que compiten por el uso de la CPU. Esto implica que al realizar mediciones aparezcan ``ruidos'' o ``interferencias'' que distorsionen los resultados. \\
 
-El primer paso para tener una idea de si la medición es buena o no, es tomar varias muestras. Es decir, repetir la misma medición varias veces.Luego de eso, es conveniente descartar los outliers, que son los valores que más se alejan del promedio. Con los valores de las mediciones resultantes se puede calcular el promedio y también la varianza, que es algo similar el promedio de las distancias al promedio. \\
+El primer paso para tener una idea de si la medición es buena o no, es tomar varias muestras. Es decir, repetir la misma medición varias veces. Luego de eso, es conveniente descartar los outliers, que son los valores que más se alejan del promedio. Con los valores de las mediciones resultantes se puede calcular el promedio y también la varianza, que es algo similar el promedio de las distancias al promedio. \\
 
 Las fórmulas para calcular el promedio $\mu$ y la varianza $\sigma^2$ son
 
@@ -331,11 +331,36 @@ $$
 
 Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
 
-Se corrieron ambas implementaciones 1000 veces utilizando 5 pares de imágenes de tamaños: 120 x 120, 512 x 512, 800 x 600 y 640 x 400. \\
+Se corrieron ambas implementaciones 1000 veces utilizando 4 pares de imágenes de distintosº tamaños: 120 x 120, 512 x 512, 640 x 400 y 800 x 600. \\
 
-Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Diff} fueron destacables. La hipótesis fue incorrecta. El filtro implementado en lenguaje ensamblador llegó a superar al implementado en C por más de 10 veces en velocidad. Esto puede apreciarse en el siguiente gráfico.
+Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Diff} fueron destacables. La hipótesis fue incorrecta. El filtro implementado en lenguaje ensamblador llegó a superar al implementado en C por más de 10 veces en velocidad. Esto puede apreciarse en el siguiente gráfico. \\
 
-(GRAFICO)
+\begin{tikzpicture}
+  \begin{axis}[title  = Figura 1 - Cantidad de clocks filtro Diff,
+    xbar,
+    y axis line style = { opacity = 0 },
+    axis x line       = none,
+    tickwidth         = 0pt,
+    enlarge y limits  = 0.2,
+    enlarge x limits  = 0.02,
+    symbolic y coords = {800 x 600, 640 x 400, 512 x 512, 120 x 120},
+    nodes near coords,
+  ]
+  \addplot coordinates {  
+    (629234,120 x 120)
+    (11413881,512 x 512)
+    (11382588,640 x 400)
+    (21231368,800 x 600) 
+  };
+  \addplot coordinates { 
+    (70563,120 x 120)
+    (1003030,512 x 512)
+    (992484,640 x 400)
+    (1945705,800 x 600)
+  };
+  \legend{C, ASM}
+  \end{axis}
+\end{tikzpicture}
 
 \subsection{Diferencias de precisión en Diff}
 
@@ -345,11 +370,36 @@ Se compararon pixel a pixel las imágenes de salida generadas por ambas implemen
 
 Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
 
-Se corrieron ambas implementaciones 100 veces utilizando 5 pares de imágenes de tamaños: 120 x 120, 512 x 512, 800 x 600 y 640 x 400. Decidimos bajar el numero de repeticiones con respecto al filtro \textit{Diff} ya que este filtro demora más en generar un resultado.\\
+Se corrieron ambas implementaciones 100 veces utilizando 4 pares de imágenes de distintosº tamaños: 120 x 120, 512 x 512, 640 x 400 y 800 x 600. Decidimos bajar el numero de repeticiones con respecto al filtro \textit{Diff} ya que este filtro demora más en generar un resultado.\\
 
-Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Blur} fueron importantes, aunque no tanto como lo fueron para el filtro \textit{Diff}. La hipótesis, una vez más, fue incorrecta. El filtro implementado en lenguaje ensamblador nuevamente superó con gran amplitud al implementado en C, ejecutándose alrededor de 9 veces mas rápido. 
+Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Blur} fueron importantes, aunque no tanto como lo fueron para el filtro \textit{Diff}. La hipótesis, una vez más, fue incorrecta. El filtro implementado en lenguaje ensamblador nuevamente superó con gran amplitud al implementado en C, ejecutándose alrededor de 9 veces mas rápido. \\
 
-(GRAFICO)
+\begin{tikzpicture}
+  \begin{axis}[title  = Figura 2 - Cantidad de clocks filtro Blur,
+    xbar,
+    y axis line style = { opacity = 0 },
+    axis x line       = none,
+    tickwidth         = 0pt,
+    enlarge y limits  = 0.2,
+    enlarge x limits  = 0.02,
+    symbolic y coords = {800 x 600, 640 x 400, 512 x 512, 120 x 120},
+    nodes near coords,
+  ]
+  \addplot coordinates {  
+    (228968528,120 x 120)
+    (6652537344,512 x 512)
+    (7039704576,640 x 400)
+    (13256412160,800 x 600) 
+  };
+  \addplot coordinates { 
+    (27778298,120 x 120)
+    (812709312,512 x 512)
+    (815566272,640 x 400)
+    (1499686144,800 x 600)
+  };
+  \legend{C, ASM}
+  \end{axis}
+\end{tikzpicture}
 
 \subsection{Diferencias de precision en Blur}
 
@@ -363,9 +413,42 @@ Con motivo de comparar que tanto es posible optimizar el código, y si en verdad
 
 -O3 es el nivel más alto de optimización posible. Activa opitimizaciones que son caras en términos de tiempo de compilación y uso de memoria. Aún así, no garantiza una forma de mejorar el rendimiento y, de hecho, en muchos casos puede ralentizar un sistema debido al uso de binarios de gran tamaño y mucho uso de la memoria. También se sabe que -O3 puede romper algunos paquetes por lo que no es recomendado su uso, pero justamente para conocer cuánto valen estos riesgos es que llevamos adelante este experimento. \\
 
-Los resultados que obtuvimos fueron los esperados. Este nivel de optimización reflejó una mejora en la velocidad del algoritmo, pero no la suficiente como para vencer a la implementación en lenguaje ensamblador.
+Los resultados que obtuvimos fueron los esperados. Este nivel de optimización reflejó una mejora en la velocidad del algoritmo, pero no la suficiente como para vencer a la implementación en lenguaje ensamblador. \\
 
-(GRAFICO)
+Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor tiempo necesita para completarse, siendo así un mejor candidato para resaltar las diferencias de performance temporal. \\
+
+\begin{tikzpicture}
+  \begin{axis}[title  = Figura 3 - Cantidad de clocks optimización -O3,
+    xbar,
+    y axis line style = { opacity = 0 },
+    axis x line       = none,
+    tickwidth         = 0pt,
+    enlarge y limits  = 0.2,
+    enlarge x limits  = 0.02,
+    symbolic y coords = {800 x 600, 640 x 400, 512 x 512, 120 x 120},
+    nodes near coords,
+  ]
+  \addplot coordinates {  
+    (228968528,120 x 120)
+    (6652537344,512 x 512)
+    (7039704576,640 x 400)
+    (13256412160,800 x 600) 
+  };
+  \addplot coordinates {  
+    (184060624,120 x 120)
+    (5291840000,512 x 512)
+    (5328648192,640 x 400)
+    (10184464384,800 x 600) 
+  };
+  \addplot coordinates { 
+    (27778298,120 x 120)
+    (812709312,512 x 512)
+    (815566272,640 x 400)
+    (1499686144,800 x 600)
+  };
+  \legend{C, C -O3, ASM}
+  \end{axis}
+\end{tikzpicture}
 
 \section{Conclusión}
 
@@ -375,31 +458,6 @@ Dada la popularidad de la arquitectura de 64 bits de intel, se puede concluir qu
 
 A pesar de la mayor dificultad para implementar y pensar cómo trabajar con vectores utilizando SIMD, la diferencia de performance es muy notoria, por lo que vale la pena para este tipo de aplicaciones, donde se realiza numerosas veces la misma aritmética.
 .
-\section{Figura de prueba}
-% Bar charts
-% Author: Stefan Kottwitz
-% https://www.packtpub.com/hardware-and-creative/latex-cookbook
-
-\begin{tikzpicture}
-  \begin{axis}[title  = Contributions per category
-                          at LaTeX-Community.org,
-    xbar,
-    y axis line style = { opacity = 0 },
-    axis x line       = none,
-    tickwidth         = 0pt,
-    enlarge y limits  = 0.2,
-    enlarge x limits  = 0.02,
-    symbolic y coords = {LaTeX, Tools, Distributions, Editors},
-    nodes near coords,
-  ]
-  \addplot coordinates { (57727,LaTeX)         (5672,Tools)
-                         (2193,Distributions)  (11106,Editors) };
-  \addplot coordinates { (14320,LaTeX)         (1615,Tools)
-                         (560,Distributions)   (3075,Editors)  };
-  \legend{Topics, Posts}
-  \end{axis}
-\end{tikzpicture}
-
 
 % \section{Observaciones}
 % 	\includegraphics[keepaspectratio]{gen/diff.png}
