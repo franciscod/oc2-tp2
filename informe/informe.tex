@@ -367,6 +367,13 @@ Los resultados que obtuvimos fueron los esperados. Este nivel de optimización r
 
 (GRAFICO)
 
+\section{Conclusión}
+
+Los resultados de nuestras mediciones han demostrado que la implementación de los filtros en Lenguaje Assembler han logrado una performance de alto nivel de rendimiento ya que el tiempo necesario para su ejecución fue alrededor de 10 veces menor. Si bien, hubo casos donde usando un flag de optimización adecuado al momento de compilar se lograron resultados con un tiempo de ejecución menor, no fue lo suficiente como para superar la velocidad conseguida por el modelo SIMD. \\
+
+Dada la popularidad de la arquitectura de 64 bits de intel, se puede concluir que la implementación del SIMD en assembler tiene un precio razonable frente a la perfomance alcanzada.\\
+
+A pesar de la mayor dificultad para implementar y pensar cómo trabajar con vectores utilizando SIMD, la diferencia de performance es muy notoria, por lo que vale la pena para este tipo de aplicaciones, donde se realiza numerosas veces la misma aritmética.
 .
 \section{Figura de prueba}
 % Bar charts
