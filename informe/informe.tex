@@ -307,6 +307,10 @@ Una vez calculado el pixel, convierte los valores del registro xmm0 en formato i
 
 \section{Resultados}
 
+Se realizaron una serie de experimentos para poder conocer qué ventajas presenta el uso del modelo SIMD. Para ello comparamos sobre ambos filtros las implementaciones hechas en lenguage ensamblador, que aprovechan las instrucciones SSE, y las hechas en C, que no tienen esta ventaja. \\
+
+Las hipótesis para ambos filtros no varía.
+
 \subsection{Mediciones}
 
 Realizar una medición de performance \emph{rigurosa} es más difícil de lo que parece. En este experimento deberá realizar distintas mediciones de performance para verificar que sean buenas mediciones. \\
@@ -321,6 +325,33 @@ $$
 \mu = \frac{1}{n}\sum_{i=1}^{n} x_i \qquad \sigma^2 = \frac{\displaystyle\sum_{i=1}^{n}(x_i - \mu)^2} {n}
 $$
 
+\subsection{Diferencias de performance en Diff}
+
+Hipótesis: La velocidad de la ejecución del filtro implementado en lenguage ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
+
+Se corrieron ambas implementaciones 1000 veces utilizando 5 pares de imágenes de tamaños: 120 x 120, 512 x 512, 800 x 600 y 640 x 400. \\
+
+Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Diff} fueron destacables. La hipótesis fue incorrecta. El filtro implementado en lenguaje ensamblador llegó a superar al implementado en C por más de 10 veces en velocidad. Esto puede apreciarse en el siguiente gráfico.
+
+(GRAFICO)
+
+\subsection{Diferencias de precisión en Diff}
+
+Se compararon pixel a pixel las imágenes de salida generadas por ambas implementaciones del filtro y no hubo diferencias.
+
+\subsection{Diferencias de performance en Blur}
+
+Hipótesis: La velocidad de la ejecución del filtro implementado en lenguage ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
+
+Se corrieron ambas implementaciones 100 veces utilizando 5 pares de imágenes de tamaños: 120 x 120, 512 x 512, 800 x 600 y 640 x 400. Decidimos bajar el numero de repeticiones con respecto al filtro \textit{Diff} ya que este filtro demora más en generar un resultado.\\
+
+Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Blur} fueron importantes, aunque no tanto como lo fueron para el filtro \textit{Diff}. La hipótesis, una vez más, fue incorrecta. El filtro implementado en lenguage ensamblador nuevamente superó con gran amplitud al implementado en C, ejecutándose alrededor de 9 veces mas rápido. 
+
+(GRAFICO)
+
+\subsection{Diferencias de precision en Blur}
+
+Una vez más comparamos las imágenes de salida generadas por ambas implementaciones y esta vez sí obtuvimos diferencias. Si bien eran casi imperceptibles para el ojo humano, en cada imagen encontramos dos pares de pixeles que diferían entre sí por un valor de 1 en alguna componente del color. (FRAN ACA PODES AGREGAR MUCHA DE ESA POSTA QUE TIRASTE POR HANGOUT)
 
 \section{Figura de prueba}
 % Bar charts

@@ -1,3 +1,7 @@
+x1000 diff c   molino molino 			= 629234
+x1000 diff c   molino molino			= 70563
+No hay diferencias
+
 x1000 diff c   lena24 colores24 		= 11413881
 x1000 diff asm lena24 colores24 		= 1003030
 No hay diferencias
@@ -14,6 +18,10 @@ x1000 diff c   CONVscene CONVscene400 	= 21231368
 x1000 diff asm CONVscene CONVscene400 	= 1945705
 No hay diferencias
 
+x100  blur c   molino 		5 15 	= 228968528
+x100  blur asm molino 		5 15 	= 27778298
+Diferencias:
+1 1
 
 x1000 blur c   lena24 		5 15 	= 6652537344
 x1000 blur asm lena24 		5 15	= 812709312
