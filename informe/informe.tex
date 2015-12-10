@@ -252,6 +252,8 @@ dst_matrix[row][col * 4 + OFFSET_ALPHA] = 255;
 La primera implementación en ASM consiste en procesar el pixel recorriendo la matriz de convolucion fila por fila, cada una de izquierda a derecha.
 Calcula un pixel de la imagen de salida a la vez. La ventaja que sacamos de las instrucciones SSE es que para procesar cada fila podemos computar 4 pixeles de la imagen de entrada simultáneamente. \\
 
+Esta implementación consumió mucho tiempo de trabajo. Mas adelante analizaremos si los resultados justifican la dificultad de desarrollar y pensar usando el model SIMD. \\
+
 Cada pixel tiene 4 componentes, cada una ocupa un byte, por lo que cada pixel ocupa 4 bytes. Dentro de los registros xmm podemos almacenar hasta 16 bytes, por lo que es posible guardar dentro el valor de 4 pixeles. De esta forma podemos obtener el valor de 4 pixeles que serán procesados acorde al uso del modelo SIMD. \\
 
 Para calcular el valor final de cada pixel, nuestra implementación usa 2 indices que representaran la posición actual (x,y) y que utilizamos para recorrer los vecinos. Dentro de el ciclo del recorrido, lee de memoria 4 pixeles y los almacena en un registro xmm para luego copiarlo en otros 3 que usaremos para separarlos por componente (no son 4 ya que la componente alpha tiene como valor 255 siempre).
@@ -364,6 +366,7 @@ Con motivo de comparar que tanto es posible optimizar el código, y si en verdad
 Los resultados que obtuvimos fueron los esperados. Este nivel de optimización reflejó una mejora en la velocidad del algoritmo, pero no la suficiente como para vencer a la implementación en lenguaje ensamblador.
 
 (GRAFICO)
+
 .
 \section{Figura de prueba}
 % Bar charts
