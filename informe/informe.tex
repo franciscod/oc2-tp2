@@ -337,9 +337,9 @@ Resolvimos el problema de las máscaras, pero aun así el filtro no desenfocaba 
 
 El programa no recorría correctamente los vecinos, no entendíamos porqué, asi que lo rehicimos y obtuvimos esta salida: \\
 
-\includegraphics[width=10cm, keepaspectratio]{problema_circulos.png} \\
+\includegraphics[width=15cm, keepaspectratio]{problema_circulos_columnas.png} \\
 
-Este fue el último percance que tuvimos que enfrentar. El tiempo empleado en solucionar estos errores nos dió a conocer la dificultad de trabajar con vectores utilizando SIMD, y la forma en que se multiplica la cantidad de factores que tenemos que tener en cuenta para realizar una tarea que, por ejemplo, en C resulta muy sencilla y fácil de entender. \\
+Este fue el último percance que tuvimos que enfrentar. Estabamos recorriendo de a 16 pixeles en lugar de a 4. El tiempo empleado en solucionar estos errores nos dió a conocer la dificultad de trabajar con vectores utilizando SIMD, y la forma en que se multiplica la cantidad de factores que tenemos que tener en cuenta para realizar una tarea que, por ejemplo, en C resulta muy sencilla y fácil de entender. \\
 
 Si comparamos el modo en que desarrollamos en cada lenguaje, en lenguaje ensamblador sufrimos muchos errores, aún implementando paso por paso y con cautela, cuando en C los filtros quedaron terminados en cuestion de minutos.
 
@@ -356,12 +356,6 @@ Realizar una medición de performance \emph{rigurosa} es más difícil de lo que
 En un sistema ``ideal'' el proceso medido corre solo, sin ninguna interferencia de agentes externos. Sin embargo, una PC no es un sistema ideal. Nuestro proceso corre junto con decenas de otros, tanto de usuarios como del sistema operativo que compiten por el uso de la CPU. Esto implica que al realizar mediciones aparezcan ``ruidos'' o ``interferencias'' que distorsionen los resultados. \\
 
 El primer paso para tener una idea de si la medición es buena o no, es tomar varias muestras. Es decir, repetir la misma medición varias veces. Luego de eso, es conveniente descartar los outliers, que son los valores que más se alejan del promedio. Con los valores de las mediciones resultantes se puede calcular el promedio y también la varianza, que es algo similar el promedio de las distancias al promedio. \\
-
-Las fórmulas para calcular el promedio $\mu$ y la varianza $\sigma^2$ son
-
-$$
-\mu = \frac{1}{n}\sum_{i=1}^{n} x_i \qquad \sigma^2 = \frac{\displaystyle\sum_{i=1}^{n}(x_i - \mu)^2} {n}
-$$
 
 \subsection{Diferencias de performance en Diff}
 
