@@ -6,6 +6,8 @@ informe/*.pdf
 informe/*.out
 informe/*.aux
 informe/*.log
+informe/*.ind
+informe/*.ilg
 
 .DS_Store
 .directory
