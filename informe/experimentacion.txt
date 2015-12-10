@@ -19,27 +19,33 @@ x1000 diff asm CONVscene CONVscene400 	= 1945705
 No hay diferencias
 
 x100  blur c   molino 		5 15 	= 228968528
+x100  blur c3  molino 		5 15 	= 184060624
 x100  blur asm molino 		5 15 	= 27778298
 Diferencias:
 1 1
 
 x1000 blur c   lena24 		5 15 	= 6652537344
+x100  blur c3  lena24 		5 15 	= 5291840000
 x1000 blur asm lena24 		5 15	= 812709312
 Diferencias:
 1 28
 
-x100  blur c   lena32 		5 15	= 4868047360
+x100  blur c   lena32 		5 15	= 7039704576
+x100  blur c3  lena32 		5 15 	= 5328648192
 x1000 blur asm lena32 		5 15	= 815566272
+
 Diferencias:
 1 28
 
-x100  blur c   scene0 		5 15	= 9140637696
-x100  blur asm scene0 		5 15	= 1174508032
+x100  blur c   scene0 		5 15	= 12924058624
+x100  blur c3  scene0 		5 15	= 10440378368
+x100  blur asm scene0 		5 15	= 1505030528
 Diferencias:
 1 63
 
-x100  blur c   CONVscene    5 15	= 9568850944
-x100  blur asm CONVscene    5 15	= 1170495744
+x100  blur c   CONVscene    5 15	= 13256412160
+x100  blur c3  CONVscene    5 15	= 10184464384
+x100  blur asm CONVscene    5 15	= 1499686144
 Diferencias:
 1 63
 
