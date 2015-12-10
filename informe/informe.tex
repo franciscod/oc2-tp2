@@ -101,7 +101,11 @@ ASM vs ASM
 \subsection{Introducción}
 
 \textit{Diff} es un filtro que genera una imagen que, por medio de una escala de grises, indica dónde difieren las imágenes y qué tanto.
-El valor del gris está dado por la maxima diferencia entre las componentes de los pixeles de ambas imágenes
+El valor del gris está dado por la maxima diferencia entre las componentes de los pixeles de ambas imágenes. \\
+
+Esta es la imagen que genera el filtro al pasarle las imágenes lena24.bmp y colores24.bmp \\
+
+\includegraphics[keepaspectratio]{diff_lena24_colores24.png}
 
 \subsection{Implementación en C}
 
@@ -212,7 +216,11 @@ movups [r9], xmm1       ; r9 = puntero a imagen destino
 
 Los bordes de la imagen no se veran afectados por el filtro ya que en esas posiciones de la imagen no se puede tomar la cantidad de vecinos necesaria. \\
 
-(PODRIA HABLAR DE LOS PARAMETROS QUE TOMA EL BLUR)
+(PODRIA HABLAR DE LOS PARAMETROS QUE TOMA EL BLUR) \\
+
+Esta es la imagen que genera el filtro para la imagen lena24.bmp con parametro sigma = 5 y r = 15 \\
+
+\includegraphics[keepaspectratio]{blur_lena24_5_15.png}
 
 \subsection{Implementación en C}
 
@@ -457,7 +465,6 @@ Los resultados de nuestras mediciones han demostrado que la implementación de l
 Dada la popularidad de la arquitectura de 64 bits de intel, se puede concluir que la implementación del SIMD en assembler tiene un precio razonable frente a la perfomance alcanzada.\\
 
 A pesar de la mayor dificultad para implementar y pensar cómo trabajar con vectores utilizando SIMD, la diferencia de performance es muy notoria, por lo que vale la pena para este tipo de aplicaciones, donde se realiza numerosas veces la misma aritmética.
-.
 
 % \section{Observaciones}
 % 	\includegraphics[keepaspectratio]{gen/diff.png}
