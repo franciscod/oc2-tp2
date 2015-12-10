@@ -319,11 +319,35 @@ addps xmm0, xmm7
 
 Una vez calculado el pixel, convierte los valores del registro xmm0 en formato int de 4bytes, lo empaqueta y le agrega el valor de alpha, que es 255. Finalmente lo guarda en la matriz de salida
 
+\section{Problemas}
+
+Se nos presentaron varios problemas durante el desarrollo del filtro \textit{Blur} en lenguaje ensamblador. \\
+
+Comenzamos teniendo un problema a la hora de almacenar los valores, lo que nos resultaba en una imagen con una gran cantidad de pixeles apagados. \\
+
+\includegraphics[width=7cm, keepaspectratio]{problema_colores.jpg} \\
+
+Conseguimos solucionarlo pero aún el filtro no era capaz de manipular correctamente los vectores que se leían de los píxeles vecinos. Las máscaras que utilizabamos para hacer el shuffle no eran correctas, y nos daba esta salida como resultado: \\
+
+\includegraphics[width=10cm, keepaspectratio]{problema_lena_cristal.png} \\
+
+Resolvimos el problema de las máscaras, pero aun así el filtro no desenfocaba la imagen, sino que le daba otro tipo de efecto. \\
+
+\includegraphics[width=10cm, keepaspectratio]{problema_lena.png} \\
+
+El programa no recorría correctamente los vecinos, no entendíamos porqué, asi que lo rehicimos y obtuvimos esta salida: \\
+
+\includegraphics[width=10cm, keepaspectratio]{problema_circulos.png} \\
+
+Este fue el último percance que tuvimos que enfrentar. El tiempo empleado en solucionar estos errores nos dió a conocer la dificultad de trabajar con vectores utilizando SIMD, y la forma en que se multiplica la cantidad de factores que tenemos que tener en cuenta para realizar una tarea que, por ejemplo, en C resulta muy sencilla y fácil de entender. \\
+
+Si comparamos el modo en que desarrollamos en cada lenguaje, en lenguaje ensamblador sufrimos muchos errores, aún implementando paso por paso y con cautela, cuando en C los filtros quedaron terminados en cuestion de minutos.
+
 \section{Resultados}
 
 Se realizaron una serie de experimentos para poder conocer qué ventajas presenta el uso del modelo SIMD. Para ello comparamos sobre ambos filtros las implementaciones hechas en lenguaje ensamblador, que aprovechan las instrucciones SSE, y las hechas en C, que no tienen esta ventaja. \\
 
-Las hipótesis para ambos filtros no varía.
+Las hipótesis para ambos filtros no varían.
 
 \subsection{Mediciones}
 
