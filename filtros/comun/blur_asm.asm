@@ -129,8 +129,9 @@ blur_asm:
             imul rcx, 2
             inc rcx
 
-            call calcular_pixel                     ; devuelve en rax el pixel resultante como 4 bytes BGRA
-
+            call calcular_pixel                    ; devuelve en rax el pixel resultante como 4 bytes BGRA
+            ; call calcular_pixel_traspuesto
+            
             add rsp, 8
             pop r11
             pop r9
@@ -325,6 +326,176 @@ calcular_pixel:
 	pop r12
 	pop rbp
 	ret
+
+calcular_pixel_traspuesto:
+    ; rdi puntero al inicio de la conv en imagen original
+    ; rsi inicio matriz convolucion
+    ; rdx cant columnas imagen
+    ; rcx lado mat convolucion
+
+    ; devuelve en rax el pixel resultante como 4 bytes BGRA
+
+    push rbp
+    mov rbp, rsp
+    push r12
+    push r13
+    push r14
+    push r15
+    mov r12, rdi ; puntero al inicio de la conv en imagen original
+    mov r13, rsi ; inicio matriz convolucion
+    mov r14, rdx ; cant columnas imagen
+    mov r15, rcx ; lado mat convolucion (2r+1)
+
+
+    ; %ifdef DEBUG
+    ;       mov rdi, r13
+    ;       mov rsi, r15
+    ;       mov rdx, r15
+    ;       call imprimir_mat
+    ; %endif
+
+    ;                                                       0123
+    ; devuelve en rax el valor de la convolucion como pixel BGRA
+
+    ; Voy a usar estos registros para acumular las componentes
+    pxor xmm0, xmm0        ; xmm0 = acumulador float :  azul | verde | rojo | 0
+
+
+    ; Seteo unas mascaras para separar las componentes
+
+    movdqu xmm12, [shuf_mask_d2b]
+    movdqu xmm13, [shuf_mask_blue]
+    movdqu xmm14, [shuf_mask_green]
+    movdqu xmm15, [shuf_mask_red]
+
+    xor r9, r9                                  ; r9 = indice columna, de 0 a r15&~0x03, lo suma de a 4
+    .columnas:
+    ; me muevo en bloques de 4 columnas
+        cmp r9, r15
+        jg .fin_columnas
+
+        xor r8, r8                                  ; r8 = indice fila, de 0 a r15
+        .filas:
+            ; me muevo por fila
+            cmp r8, r15
+            je .fin_filas
+
+            mov r10, r8
+            imul r10, r14 ; cant columnas imagen
+            add r10, r9
+
+            mov r11, r8
+            imul r11, r15 ; lado mat convolucion
+            add r11, r9
+
+            movdqu xmm3, [r12+r10*PIXEL_SIZE]                  ; xmm3 = vector imagen entrada
+            movups xmm4, [r13+r11*FLOAT_SIZE]                  ; lee 4 floats de convolucion desalineado
+
+
+            ; Agrupo por componente (todos los azules por un lado...) usando un shuffle
+            movdqu xmm5, xmm3                   ; xmm5 va a contener solo las componentes azules
+            movdqu xmm6, xmm3                   ; xmm6 va a contener solo las componentes verdes
+            movdqu xmm7, xmm3                   ; xmm7 va a contener solo las componentes rojas
+
+            pshufb xmm5, xmm13                   ; xmm5 = B0 | 0 | 0 | 0 | B1 | 0 | 0 | 0 | B2 | 0 | 0 | 0 | B3 | 0 | 0 | 0
+            pshufb xmm6, xmm14                   ; xmm6 = G0 | 0 | 0 | 0 | G1 | 0 | 0 | 0 | G2 | 0 | 0 | 0 | G3 | 0 | 0 | 0
+            pshufb xmm7, xmm15                   ; xmm7 = R0 | 0 | 0 | 0 | R1 | 0 | 0 | 0 | R2 | 0 | 0 | 0 | R3 | 0 | 0 | 0
+
+            ; Convierto a float
+            cvtdq2ps xmm5, xmm5
+            cvtdq2ps xmm6, xmm6
+            cvtdq2ps xmm7, xmm7
+
+            ; nota: 2r+1 es o bien 4k+1 o bien 4k+3
+
+            mov rax, r15 ; ancho conv
+            sub rax, r9 ; ancho conv -x
+            cmp rax, 4 ; >=4?
+            jge .dpps_4 ; procesa 4
+            cmp rax, 3 ; =3?
+            je .dpps_3 ; procesa 3
+            jl .dpps_1 ; procesa 1
+
+            ; ahora llamamos a esta funcion que tiene toda la posta (?)
+            ; hace el producto interno entre los dos parametros y segun el inmediato que le pasas
+            ; despues definis que componentes se usan y a donde manda el resultado
+            ; el primer nibble dice que cuentas se hacen:
+            ;    F se hacen todas, 7 se hacen las primeras 3, 1 se hace solo la primeras
+            ; el segundo nibble dice donde va el resultado
+            ;    1 canal azul, 2 canal verde, 4, canal rojo
+            ; esto esta bueno porque despues sumas directamente los 3 registros y te queda el valor del pixel
+
+            .dpps_4:
+                ; Voy multiplicando 4 vs 4 entre convolucion y componente k de cada pixel
+                dpps xmm5, xmm4, 0xF1
+                dpps xmm6, xmm4, 0xF2
+                dpps xmm7, xmm4, 0xF4
+
+                addps xmm0, xmm5
+                addps xmm0, xmm6
+                addps xmm0, xmm7
+
+                jmp .siguiente_fila
+
+            .dpps_3:
+                dpps xmm5, xmm4, 0x71
+                dpps xmm6, xmm4, 0x72
+                dpps xmm7, xmm4, 0x74
+
+                addps xmm0, xmm5
+                addps xmm0, xmm6
+                addps xmm0, xmm7
+                
+                jmp .siguiente_fila
+
+            .dpps_1:
+                dpps xmm5, xmm4, 0x11
+                dpps xmm6, xmm4, 0x12
+                dpps xmm7, xmm4, 0x14
+
+                addps xmm0, xmm5
+                addps xmm0, xmm6
+                addps xmm0, xmm7
+                
+            .siguiente_fila:
+                
+                inc r8
+                jmp .filas
+
+        .fin_filas:
+
+        add r9, 4 ; avanza 4 casilleros, proceso 4 px y 4 coefs de convolucion
+        jmp .columnas ; sigue
+
+    .fin_columnas:
+
+    ; Los convierto a formato int de 4bytes (dword)
+    cvtps2dq xmm0, xmm0
+    ; empaquetamos shuffleando
+    pshufb xmm0, xmm12
+
+    xor rax, rax
+    movd eax, xmm0
+    or eax, 0xFF000000 ; clava el alpha en 255
+
+    %ifdef DEBUG
+            push rax
+            push rax
+
+            mov rdi, format_hex
+            mov rsi, rax
+;           call printf
+
+            pop rax
+            pop rax
+    %endif
+
+    pop r15
+    pop r14
+    pop r13
+    pop r12
+    pop rbp
+    ret
 
 
 %define SIGMA_PILA rbp-16

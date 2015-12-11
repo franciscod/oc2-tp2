@@ -1,0 +1,7 @@
+Blur ASM
+normal 		: 22233978880
+traspuesto 	: 23040937984
+
+Diff C
+normal 		: 287030464
+traspuesto 	: 1707710848
