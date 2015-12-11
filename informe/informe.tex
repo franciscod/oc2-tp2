@@ -105,7 +105,7 @@ La intensidad del gris está dada por la maxima diferencia entre las componentes
 
 Esta es la imagen que genera el filtro al pasarle las imágenes lena24.bmp y colores24.bmp \\
 
-\includegraphics[keepaspectratio]{diff_lena24_colores24.png}
+\begin{center}\includegraphics[keepaspectratio]{diff_lena24_colores24.png}\end{center}
 
 \subsection{Implementación en C}
 
@@ -143,7 +143,7 @@ movups xmm2, [rsi]     ; rsi = puntero a imagen 2
 movups xmm3, xmm1
 movups xmm4, xmm2
 
-punpcklbw xmm1, xmm5   ; xmm5 esta limpio para 
+punpcklbw xmm1, xmm5   ; xmm5 esta limpio para
 punpckhbw xmm3, xmm5
 
 punpcklbw xmm2, xmm5
@@ -186,7 +186,7 @@ psrldq xmm2, 1		; Me muevo un byte a la derecha
 pmaxub xmm1, xmm2
 
 ; Pongo el maximo que hasta ahora tengo en el canal R de cada pixel en todos los canales
-pshufb xmm1, xmm7   ; xmm es la mascara que distribuye el valor del maximo en 
+pshufb xmm1, xmm7   ; xmm es la mascara que distribuye el valor del maximo en
                     ; todas las componentes
 
 \end{verbatim}
@@ -224,7 +224,7 @@ El radio representa la distancia desde el pixel hasta su último vecino. En otra
 
 Esta es la imagen que genera el filtro para la imagen lena24.bmp con parametro sigma = 5 y r = 15 \\
 
-\includegraphics[keepaspectratio]{blur_lena24_5_15.png}
+\begin{center}\includegraphics[keepaspectratio]{blur_lena24_5_15.png}\end{center}
 
 \subsection{Implementación en C}
 
@@ -272,14 +272,14 @@ Para calcular el valor final de cada pixel, nuestra implementación usa 2 indice
 
 \begin{codesnippet}
 \begin{verbatim}
-	
+
 movdqu xmm3, [r12+r10*PIXEL_SIZE]   ; xmm3 = vector imagen entrada
                                     ; r12  = puntero de la imagen de entrada
                                     ; r10  = posicion en la imagen d entrada
 
 movdqu xmm5, xmm3                   ; xmm5 va a contener solo las componentes azules
 movdqu xmm6, xmm3                   ; xmm6 va a contener solo las componentes verdes
-movdqu xmm7, xmm3                   ; xmm7 va a contener solo las componentes rojas	
+movdqu xmm7, xmm3                   ; xmm7 va a contener solo las componentes rojas
 
 ; xmm13, xmm14 y xmm15 contienen mascaras para hacer el shuffle
 pshufb xmm5, xmm13                  ; xmm5 = B0 0 0 0 B1 0 0 0 B2 0 0 0 B3 0 0 0
@@ -325,19 +325,19 @@ Se nos presentaron varios problemas durante el desarrollo del filtro \textit{Blu
 
 Comenzamos teniendo un problema a la hora de almacenar los valores, lo que nos resultaba en una imagen con una gran cantidad de pixeles apagados. \\
 
-\includegraphics[width=7cm, keepaspectratio]{problema_colores.jpg} \\
+\begin{center}\includegraphics[width=7cm, keepaspectratio]{problema_colores.jpg} \\\end{center}
 
 Conseguimos solucionarlo pero aún el filtro no era capaz de manipular correctamente los vectores que se leían de los píxeles vecinos. Las máscaras que utilizabamos para hacer el shuffle no eran correctas, y nos daba esta salida como resultado: \\
 
-\includegraphics[width=10cm, keepaspectratio]{problema_lena_cristal.png} \\
+\begin{center}\includegraphics[width=10cm, keepaspectratio]{problema_lena_cristal.png} \\\end{center}
 
 Resolvimos el problema de las máscaras, pero aun así el filtro no desenfocaba la imagen, sino que le daba otro tipo de efecto. \\
 
-\includegraphics[width=10cm, keepaspectratio]{problema_lena.png} \\
+\begin{center}\includegraphics[width=10cm, keepaspectratio]{problema_lena.png} \\\end{center}
 
 El programa no recorría correctamente los vecinos, no entendíamos porqué, asi que lo rehicimos y obtuvimos esta salida: \\
 
-\includegraphics[width=15cm, keepaspectratio]{problema_circulos_columnas.png} \\
+\begin{center}\includegraphics[width=15cm, keepaspectratio]{problema_circulos_columnas.png} \\\end{center}
 
 Este fue el último percance que tuvimos que enfrentar. Estabamos recorriendo de a 16 pixeles en lugar de a 4. El tiempo empleado en solucionar estos errores nos dió a conocer la dificultad de trabajar con vectores utilizando SIMD, y la forma en que se multiplica la cantidad de factores que tenemos que tener en cuenta para realizar una tarea que, por ejemplo, en C resulta muy sencilla y fácil de entender. \\
 
@@ -364,9 +364,9 @@ Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje en
 Se corrieron ambas implementaciones 1000 veces utilizando 4 pares de imágenes de distintosº tamaños: 120 x 120, 512 x 512, 640 x 400 y 800 x 600. \\
 
 Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Diff} fueron destacables. La hipótesis fue incorrecta. El filtro implementado en lenguaje ensamblador llegó a superar al implementado en C por más de 10 veces en velocidad. Esto puede apreciarse en el siguiente gráfico. \\
-
+\begin{center}
 \begin{tikzpicture}
-  \begin{axis}[title  = Figura 1 - Cantidad de clocks filtro Diff,
+  \begin{axis}[title  ={ Figura 1 - Cantidad de clocks (toda la imagen), filtro Diff},
     xbar,
     y axis line style = { opacity = 0 },
     axis x line       = none,
@@ -376,13 +376,13 @@ Las diferencias de performance temporal de las implementaciones en cuanto al fil
     symbolic y coords = {800 x 600, 640 x 400, 512 x 512, 120 x 120},
     nodes near coords,
   ]
-  \addplot coordinates {  
+  \addplot coordinates {
     (629234,120 x 120)
     (11413881,512 x 512)
     (11382588,640 x 400)
-    (21231368,800 x 600) 
+    (21231368,800 x 600)
   };
-  \addplot coordinates { 
+  \addplot coordinates {
     (70563,120 x 120)
     (1003030,512 x 512)
     (992484,640 x 400)
@@ -391,6 +391,7 @@ Las diferencias de performance temporal de las implementaciones en cuanto al fil
   \legend{C, ASM}
   \end{axis}
 \end{tikzpicture}
+\end{center}
 
 \subsection{Diferencias de precisión en Diff}
 
@@ -403,9 +404,9 @@ Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje en
 Se corrieron ambas implementaciones 100 veces utilizando 4 pares de imágenes de distintosº tamaños: 120 x 120, 512 x 512, 640 x 400 y 800 x 600. Decidimos bajar el numero de repeticiones con respecto al filtro \textit{Diff} ya que este filtro demora más en generar un resultado.\\
 
 Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Blur} fueron importantes, aunque no tanto como lo fueron para el filtro \textit{Diff}. La hipótesis, una vez más, fue incorrecta. El filtro implementado en lenguaje ensamblador nuevamente superó con gran amplitud al implementado en C, ejecutándose alrededor de 9 veces mas rápido. \\
-
+\begin{center}
 \begin{tikzpicture}
-  \begin{axis}[title  = Figura 2 - Cantidad de clocks filtro Blur,
+  \begin{axis}[title  ={ Figura 2 - Cantidad de clocks (toda la imagen), filtro Blur},
     xbar,
     y axis line style = { opacity = 0 },
     axis x line       = none,
@@ -415,13 +416,13 @@ Las diferencias de performance temporal de las implementaciones en cuanto al fil
     symbolic y coords = {800 x 600, 640 x 400, 512 x 512, 120 x 120},
     nodes near coords,
   ]
-  \addplot coordinates {  
+  \addplot coordinates {
     (228968528,120 x 120)
     (6652537344,512 x 512)
     (7039704576,640 x 400)
-    (13256412160,800 x 600) 
+    (13256412160,800 x 600)
   };
-  \addplot coordinates { 
+  \addplot coordinates {
     (27778298,120 x 120)
     (812709312,512 x 512)
     (815566272,640 x 400)
@@ -430,10 +431,14 @@ Las diferencias de performance temporal de las implementaciones en cuanto al fil
   \legend{C, ASM}
   \end{axis}
 \end{tikzpicture}
+\end{center}
 
 \subsection{Diferencias de precision en Blur}
 
-Una vez más comparamos las imágenes de salida generadas por ambas implementaciones y esta vez sí obtuvimos diferencias. Si bien eran casi imperceptibles para el ojo humano, en cada imagen encontramos dos pares de pixeles que diferían entre sí por un valor de 1 en alguna componente del color. (FRAN ACA PODES AGREGAR MUCHA DE ESA POSTA QUE TIRASTE POR HANGOUT)
+Una vez más comparamos las imágenes de salida generadas por ambas implementaciones y esta vez sí obtuvimos diferencias. Si bien eran casi imperceptibles para el ojo humano, en cada imagen encontramos muchos pares de pixeles que diferían entre sí por un valor de 1 en alguna componente del color.
+
+
+
 
 \subsection{Optimización O3 para la implementación en C}
 
@@ -446,9 +451,9 @@ Con motivo de comparar que tanto es posible optimizar el código, y si en verdad
 Los resultados que obtuvimos fueron los esperados. Este nivel de optimización reflejó una mejora en la velocidad del algoritmo, pero no la suficiente como para vencer a la implementación en lenguaje ensamblador. \\
 
 Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor tiempo necesita para completarse, siendo así un mejor candidato para resaltar las diferencias de performance temporal. \\
-
+\begin{center}
 \begin{tikzpicture}
-  \begin{axis}[title  = Figura 3 - Cantidad de clocks optimización -O3,
+  \begin{axis}[title  ={ Figura 3 - Cantidad de clocks (toda la imagen), Blur con optimización -O3},
     xbar,
     y axis line style = { opacity = 0 },
     axis x line       = none,
@@ -458,19 +463,19 @@ Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor ti
     symbolic y coords = {800 x 600, 640 x 400, 512 x 512, 120 x 120},
     nodes near coords,
   ]
-  \addplot coordinates {  
+  \addplot coordinates {
     (228968528,120 x 120)
     (6652537344,512 x 512)
     (7039704576,640 x 400)
-    (13256412160,800 x 600) 
+    (13256412160,800 x 600)
   };
-  \addplot coordinates {  
+  \addplot coordinates {
     (184060624,120 x 120)
     (5291840000,512 x 512)
     (5328648192,640 x 400)
-    (10184464384,800 x 600) 
+    (10184464384,800 x 600)
   };
-  \addplot coordinates { 
+  \addplot coordinates {
     (27778298,120 x 120)
     (812709312,512 x 512)
     (815566272,640 x 400)
@@ -479,6 +484,42 @@ Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor ti
   \legend{C, C -O3, ASM}
   \end{axis}
 \end{tikzpicture}
+\end{center}
+
+\begin{center}
+\begin{tikzpicture}
+  \begin{axis}[title  ={ Figura 4 - Cantidad de clocks (por pixel), Blur con optimización -O3},
+    xbar,
+    y axis line style = { opacity = 0 },
+    axis x line       = none,
+    tickwidth         = 0pt,
+    enlarge y limits  = 0.2,
+    enlarge x limits  = 0.02,
+    symbolic y coords = {800 x 600, 640 x 400, 512 x 512, 120 x 120},
+    nodes near coords,
+  ]
+  \addplot coordinates {
+    (15901,120 x 120)
+    (25377,512 x 512)
+    (27499,640 x 400)
+    (27618,800 x 600)
+  };
+  \addplot coordinates {
+    (12782,120 x 120)
+    (20187,512 x 512)
+    (20815,640 x 400)
+    (21218,800 x 600)
+  };
+  \addplot coordinates {
+    (1929,120 x 120)
+    (3100,512 x 512)
+    (3186,640 x 400)
+    (3124,800 x 600)
+  };
+  \legend{C, C -O3, ASM}
+  \end{axis}
+\end{tikzpicture}
+\end{center}
 
 \section{Conclusión}
 
@@ -489,7 +530,7 @@ Dada la popularidad de la arquitectura de 64 bits de intel, se puede concluir qu
 A pesar de la mayor dificultad para implementar y pensar cómo trabajar con vectores utilizando SIMD, la diferencia de performance es muy notoria, por lo que vale la pena para este tipo de aplicaciones, donde se realiza numerosas veces la misma aritmética.
 
 % \section{Observaciones}
-% 	\includegraphics[keepaspectratio]{gen/diff.png}
+% 	\begin{center}\includegraphics[keepaspectratio]{gen/diff.png}\end{center}
 % 	\begin{enumerate}
 % 		\item un item
 % 		\item otro item
@@ -498,7 +539,7 @@ A pesar de la mayor dificultad para implementar y pensar cómo trabajar con vect
 % \section{Resolución}
 
 % \vspace*{0.3cm}
-% $xmm0=  0|b_{sup1}$ $g_{sup1}$ $r_{sup1}$ $a_{sup1}$ 
+% $xmm0=  0|b_{sup1}$ $g_{sup1}$ $r_{sup1}$ $a_{sup1}$
 
 % % \subsection{Ejercicio X}
 
