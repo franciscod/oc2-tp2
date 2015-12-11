@@ -463,6 +463,35 @@ Las diferencias de performance temporal de las implementaciones en cuanto al fil
 \end{tikzpicture}
 \end{center}
 
+\begin{center}
+\begin{tikzpicture}
+  \begin{axis}[title  ={ Figura 4 - Cantidad de clocks (por pixel), filtro Blur},
+    xbar,
+    y axis line style = { opacity = 0 },
+    axis x line       = none,
+    tickwidth         = 0pt,
+    enlarge y limits  = 0.2,
+    enlarge x limits  = 0.02,
+    symbolic y coords = {800 x 600, 640 x 400, 512 x 512, 120 x 120},
+    nodes near coords,
+  ]
+  \addplot coordinates {
+    (15900.59,120 x 120)
+    (25377.42,512 x 512)
+    (27498.85,640 x 400)
+    (27617.53,800 x 600)
+  };
+  \addplot coordinates {
+    (56438.15,120 x 120)
+    (3111.14,512 x 512)
+    (5858.15,640 x 400)
+    (3124.35,800 x 600)
+  };
+  \legend{C, ASM}
+  \end{axis}
+\end{tikzpicture}
+\end{center}
+
 \subsection{Diferencias de precision en Blur}
 
 Una vez más comparamos las imágenes de salida generadas por ambas implementaciones y esta vez sí obtuvimos diferencias. Si bien eran casi imperceptibles para el ojo humano, en cada imagen encontramos muchos pares de pixeles que diferían entre sí por un valor de 1 en alguna componente del color.
@@ -480,12 +509,12 @@ Con motivo de comparar que tanto es posible optimizar el código, y si en verdad
 
 Los resultados que obtuvimos fueron los esperados. Este nivel de optimización reflejó una mejora en la velocidad del algoritmo, pero no la suficiente como para vencer a la implementación en lenguaje ensamblador. \\
 
-En la figura 5 podemos ver que, al considerar el tiempo por pixel, la imagen más chica se procesa más rapido. Esto probablemente se deba a que entra mejor en la caché del microprocesador al ser mas pequeña. \\
+En la figura 6 podemos ver que, al considerar el tiempo por pixel, la imagen más chica se procesa más rapido. Esto probablemente se deba a que entra mejor en la caché del microprocesador al ser mas pequeña. \\
 
 Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor tiempo necesita para completarse, siendo así un mejor candidato para resaltar las diferencias de performance temporal. \\
 \begin{center}
 \begin{tikzpicture}
-  \begin{axis}[title  ={ Figura 4 - Cantidad de clocks (toda la imagen), filtro Blur},
+  \begin{axis}[title  ={ Figura 5 - Cantidad de clocks (toda la imagen), filtro Blur},
     xbar,
     y axis line style = { opacity = 0 },
     axis x line       = none,
@@ -520,7 +549,7 @@ Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor ti
 
 \begin{center}
 \begin{tikzpicture}
-  \begin{axis}[title  ={ Figura 5 - Cantidad de clocks (por pixel), filtro Blur},
+  \begin{axis}[title  ={ Figura 6 - Cantidad de clocks (por pixel), filtro Blur},
     xbar,
     y axis line style = { opacity = 0 },
     axis x line       = none,
