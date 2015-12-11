@@ -39,4 +39,12 @@ $(BUILD_DIR)/%.o: %.c
 clean:
 	rm -fr $(BUILD_DIR)/*
 
-
+entrega:
+	rm -f entrega.tar
+	rm -f entrega.tar.gz
+	git clean -fdn
+	git archive --format tar master > entrega.tar
+	make -C informe
+	tar -rf entrega.tar informe/informe.pdf
+	gzip < entrega.tar > entrega.tar.gz
+	rm -f entrega.tar
