@@ -683,6 +683,8 @@ Los datos obtenidos son los siguientes: \\
 \end{tikzpicture}
 \end{center}
 
+La hipótesis fue correcta, y como podemos observar en las figuras 7 y 8, a medida que el tamaño de la imagen crece, la diferencia de performance incrementa. En imágenes chicas casi no difiere, ya que la imagen entra entera o en su mayoria en la caché, pero para imágenes grandes esto no es posible, por lo que la forma en que recorramos la imagen puede jugar un papel crucial en la velocidad de nuestro algoritmo.
+
 \section{Conclusión}
 
 Los resultados de nuestras mediciones han demostrado que la implementación de los filtros en Lenguaje Assembler han logrado una performance de alto nivel de rendimiento ya que el tiempo necesario para su ejecución fue alrededor de 10 veces menor. Si bien, hubo casos donde usando un flag de optimización adecuado al momento de compilar se lograron resultados con un tiempo de ejecución menor, no fue lo suficiente como para superar la velocidad conseguida por el modelo SIMD. \\
