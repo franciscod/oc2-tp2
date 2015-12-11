@@ -653,6 +653,36 @@ Los datos obtenidos son los siguientes: \\
 \end{tikzpicture}
 \end{center}
 
+\begin{center}
+\begin{tikzpicture}
+  \begin{axis}[title  ={ Figura 8 - Cantidad de clocks (por pixel), filtro diff - trasponiendo el recorrido},
+    xbar,
+    y axis line style = { opacity = 0 },
+    axis x line       = none,
+    tickwidth         = 0pt,
+    enlarge y limits  = 0.2,
+    enlarge x limits  = 0.02,
+    symbolic y coords = {120 x 120, 640 x 400, 1000 x 1000, 3840 x 2160},
+    nodes near coords,
+    y dir = reverse
+  ]
+  \addplot coordinates {
+    (35,120 x 120)
+    (68,640 x 400)
+    (37,1000 x 1000)
+    (34,3840 x 2160)
+  };
+  \addplot coordinates {
+    (35,120 x 120)
+    (74,640 x 400)
+    (162,1000 x 1000)
+    (205,3840 x 2160)
+  };
+  \legend{Normal, Traspuesto}
+  \end{axis}
+\end{tikzpicture}
+\end{center}
+
 \section{Conclusión}
 
 Los resultados de nuestras mediciones han demostrado que la implementación de los filtros en Lenguaje Assembler han logrado una performance de alto nivel de rendimiento ya que el tiempo necesario para su ejecución fue alrededor de 10 veces menor. Si bien, hubo casos donde usando un flag de optimización adecuado al momento de compilar se lograron resultados con un tiempo de ejecución menor, no fue lo suficiente como para superar la velocidad conseguida por el modelo SIMD. \\
