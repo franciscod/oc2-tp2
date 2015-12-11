@@ -450,10 +450,12 @@ Con motivo de comparar que tanto es posible optimizar el código, y si en verdad
 
 Los resultados que obtuvimos fueron los esperados. Este nivel de optimización reflejó una mejora en la velocidad del algoritmo, pero no la suficiente como para vencer a la implementación en lenguaje ensamblador. \\
 
+En la figura 4 podemos ver que, al considerar el tiempo por pixel, la imagen más chica se procesa más rapido. Esto probablemente se deba a que entra mejor en la caché del microprocesador al ser mas pequeña. \\
+
 Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor tiempo necesita para completarse, siendo así un mejor candidato para resaltar las diferencias de performance temporal. \\
 \begin{center}
 \begin{tikzpicture}
-  \begin{axis}[title  ={ Figura 3 - Cantidad de clocks (toda la imagen), Blur con optimización -O3},
+  \begin{axis}[title  ={ Figura 3 - Cantidad de clocks (toda la imagen), filtro Blur},
     xbar,
     y axis line style = { opacity = 0 },
     axis x line       = none,
@@ -488,7 +490,7 @@ Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor ti
 
 \begin{center}
 \begin{tikzpicture}
-  \begin{axis}[title  ={ Figura 4 - Cantidad de clocks (por pixel), Blur con optimización -O3},
+  \begin{axis}[title  ={ Figura 4 - Cantidad de clocks (por pixel), filtro Blur},
     xbar,
     y axis line style = { opacity = 0 },
     axis x line       = none,
