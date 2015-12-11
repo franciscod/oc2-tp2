@@ -45,6 +45,7 @@ entrega:
 	git clean -fdn
 	git archive --format tar master > entrega.tar
 	make -C informe
+	make -C informe
 	tar -rf entrega.tar informe/informe.pdf
 	gzip < entrega.tar > entrega.tar.gz
 	rm -f entrega.tar
