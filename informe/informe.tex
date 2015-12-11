@@ -339,7 +339,31 @@ El programa no recorría correctamente los vecinos, no entendíamos porqué, asi
 
 \begin{center}\includegraphics[width=15cm, keepaspectratio]{problema_circulos_columnas.png} \\\end{center}
 
-Este fue el último percance que tuvimos que enfrentar. Estabamos recorriendo de a 16 pixeles en lugar de a 4. El tiempo empleado en solucionar estos errores nos dió a conocer la dificultad de trabajar con vectores utilizando SIMD, y la forma en que se multiplica la cantidad de factores que tenemos que tener en cuenta para realizar una tarea que, por ejemplo, en C resulta muy sencilla y fácil de entender. \\
+Cuando pudimos resolver esto, creíamos que el problema estaba resuelto, que iba a ser el último percance que ibamos a tener que enfrentar: Estabamos recorriendo de a 16 pixeles en lugar de a 4. El tiempo empleado en solucionar estos errores nos dió a conocer la dificultad de trabajar con vectores utilizando SIMD, y la forma en que se multiplica la cantidad de factores que tenemos que tener en cuenta para realizar una tarea que, por ejemplo, en C resulta muy sencilla y fácil de entender. \\
+
+Obviamente: había mas. Con la imagen de Lena, no notabamos que hubiera nada raro. Corriendo el diff con el probador habia diferencias respecto de la version C del blur, así que hicimos una imagen de prueba con GIMP. Originalmente esta imagen era en blanco y negro, y gimp la guardaba en formato bilevel o algo similar, que la biblioteca libbmp brindada para el tp no era capaz de soportar. Tuvimos que luchar muchisimo con las conversiones de formato entre gimp e imagemagick (como 1h20 por la madrugada, no recomendamos a nadie sufrir tanto tiempo intentando convertir entre variaciones de formatos de bmp!) hasta que poniendole algunos colores y convirtiendo oportunamente con el siguiente comando funcionó: \\
+
+\begin{codesnippet}
+\begin{verbatim}
+	## EXTRAIDO DEL MENSAJE DEL COMMIT:
+	# ese invento de libbmp apesta, estuve 1h30 peleando
+
+	convert img/molino.png -compress none BMP3:img/molino.bmp
+\end{verbatim}
+\end{codesnippet}
+
+Nos hubiera encantado no tener estos problemas debido a una bibloteca que reinventa la rueda para leer un formato tan sencillo y utilizado como BMP. \\
+
+En fin, la imagen en cuestion que usamos para probar, al aplicarle Blur, mostraba algunas columnas que en lugar de difuminarse progresivamente lo hacian de a bloques. \\
+
+\begin{center}\includegraphics[width=5cm, keepaspectratio]{molino-esperado.jpg}\end{center}
+\begin{center}\includegraphics[width=5cm, keepaspectratio]{molino-sutil.jpg} \end{center}
+
+Ésto fue muy díficil de resolver: luego de más de dos horas en la madrugada, probamos cambiar los parametros del filtro y descubrimos una configuración que hacia al bug más evidente: \\
+
+\begin{center}\includegraphics[width=5cm, keepaspectratio]{molino-alevoso.jpg} \end{center}
+
+Despues de una hora de probar cualquier alteracion del codigo por inocente que sea, se nos ocurrio invertir el orden de los bytes que componen los parámetros del shuffle para mezclar los 4 pixels y sus componentes: finalmente teniamos el blur funcionando en ASM! \\
 
 Si comparamos el modo en que desarrollamos en cada lenguaje, en lenguaje ensamblador sufrimos muchos errores, aún implementando paso por paso y con cautela, cuando en C los filtros quedaron terminados en cuestion de minutos.
 
@@ -359,7 +383,8 @@ El primer paso para tener una idea de si la medición es buena o no, es tomar va
 
 \subsection{Diferencias de performance en Diff}
 
-Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
+Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4
+ veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
 
 Se corrieron ambas implementaciones 1000 veces utilizando 4 pares de imágenes de distintosº tamaños: 120 x 120, 512 x 512, 640 x 400 y 800 x 600. \\
 
