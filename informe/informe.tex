@@ -73,12 +73,9 @@ Las mediciones se realizaron corriendo los filtros 1000 veces para el \textit{Di
 
 \section{Experimentación}
 
-Los experimentos realizados se dividen dos ramas: en comparar los filtros implementados en C contra los implementados en ASM, y comparar específicamente sobre filtro blur, las distintas implementaciones del mismo. \\
+Los experimentos realizados se dividen dos ramas: en comparar los filtros implementados en C contra los implementados en ASM, y comparar específicamente sobre filtro diff, las distintas implementaciones del mismo. \\
 
-En cuanto a las implementaciones del blur, lo que hicimos fue alternar la forma en la que recorrimos la matriz de convolucion para calcular el valor de cada pixel. En la primer implementación la recorrimos desplazandonos por cada fila hasta llegar al borde derecho y pasar a la suguiente fila. En la otra, en cambio, nos desplazamos por columna (DE ESTO QUIZAS PODRIA HACERSE UN GRAFICO QUE LO ILUSTRE MEJOR, SOBRE TODO LA PARTE DE QUE AGARRAMOS DE A 4 DE UNA MISMA FILA PERO EL MOVIMIENTO ES DE COLUMNA) hasta llegar a la ultima fila y ahi seguimos con las siguientes 4 columnas. \\
-
-Es necesario destacar dos cosas: gracias a las operaciones SSE podemos computar 4 pixeles simultaneamente, pero estos pixeles son contiguos en memoria, lo que equivale a que estan uno al lado del otro horizontalmente en la imagen. Es por esto que una vez que termino de recorrer la columna, la siguiente será la que se encuentra a 4 posiciones de distancia.
-¿HIPOTESIS?:La forma en la que se almacena y se vacía la memoria caché se ve afecatada por la forma en que recorramos la matriz, ya que al hacer un recorrido contiguo en memoria, equivalente a recorrer la imagen horizontalmente, tendrá un mayor hitrate que si la recorremos verticalmente, ya que al no ser contiguas se deberán leer de memoria varios bloques que puedan no encontrarse almacenados. Esto representaría una baja en la performance temporal del algoritmo. \\
+Es necesario destacar dos cosas: gracias a las operaciones SSE podemos computar 4 pixeles simultaneamente, pero estos pixeles son contiguos en memoria, lo que equivale a que estan uno al lado del otro horizontalmente en la imagen. Es por esto que una vez que termino de recorrer la columna, la siguiente será la que se encuentra a 4 posiciones de distancia. \\
 
 C vs ASM
 
@@ -89,11 +86,11 @@ C vs ASM
 	\item Repetir los experimentos utilizando la optimización O3 para C
 \end{enumerate}
 
-ASM vs ASM
+C vs C
 
 \begin{enumerate}
-	\item Medir los tiempos que tardan ambas implementaciones del filtro blur
-	\item Registrar el comportamiento de la memoria caché frente a las distintas formas de recorrer las matrices para las implementaciones del filtro blur
+	\item Medir los tiempos que tardan ambas implementaciones del filtro diff
+	\item Registrar el comportamiento de la memoria caché frente a las distintas formas de recorrer las imágenes para las implementaciones del filtro diff
 \end{enumerate}
 
 \section{Diff}
@@ -107,7 +104,7 @@ Esta es la imagen que genera el filtro al pasarle las imágenes lena24.bmp y col
 
 \begin{center}\includegraphics[keepaspectratio]{diff_lena24_colores24.png}\end{center}
 
-\subsection{Implementación en C}
+\subsection{Implementación 1 en C}
 
 Se tienen dos indices (x e y) para recorrer las imágenes. Dentro del ciclo, para cada para de pixeles se calculan las diferencias entre las componentes y se toma la maxima. Luego se almacena 255 en alpha y el valor calculado en las otras 3 componentes en la imagen de salida. \\
 
@@ -127,6 +124,10 @@ dst_matrix[y][x+A] = 255;
 
 \end{verbatim}
 \end{codesnippet}
+
+\subsection{Implementación 2 en C}
+
+En esta segunda implementación lo único que hicimos fue cambiar el orden de los indices, para que en lugar de recorrer la imagen por fila lo haga por columna.
 
 \subsection{Implementación en ASM}
 
@@ -259,7 +260,7 @@ dst_matrix[row][col * 4 + OFFSET_ALPHA] = 255;
 \end{verbatim}
 \end{codesnippet}
 
-\subsection{Implementación 1 en ASM}
+\subsection{Implementación en ASM}
 
 La primera implementación en ASM consiste en procesar el pixel recorriendo la matriz de convolucion fila por fila, cada una de izquierda a derecha.
 Calcula un pixel de la imagen de salida a la vez. La ventaja que sacamos de las instrucciones SSE es que para procesar cada fila podemos computar 4 pixeles de la imagen de entrada simultáneamente. \\
@@ -383,8 +384,7 @@ El primer paso para tener una idea de si la medición es buena o no, es tomar va
 
 \subsection{Diferencias de performance en Diff}
 
-Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4
- veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
+\textit{Hipótesis:} La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
 
 Se corrieron ambas implementaciones 1000 veces utilizando 4 pares de imágenes de distintosº tamaños: 120 x 120, 512 x 512, 640 x 400 y 800 x 600. \\
 
@@ -454,11 +454,12 @@ Se compararon pixel a pixel las imágenes de salida generadas por ambas implemen
 
 \subsection{Diferencias de performance en Blur}
 
-Hipótesis: La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
+\textit{Hipótesis:} La velocidad de la ejecución del filtro implementado en lenguaje ensamblador será aproximadamente 4 veces la velocidad de la del filtro implementado en C, debido a la capacidad de procesar de a 4 pixeles de manera simultánea que nos proveen las instrucciones SSE. \\
 
 Se corrieron ambas implementaciones 100 veces utilizando 4 pares de imágenes de distintosº tamaños: 120 x 120, 512 x 512, 640 x 400 y 800 x 600. Decidimos bajar el numero de repeticiones con respecto al filtro \textit{Diff} ya que este filtro demora más en generar un resultado.\\
 
 Las diferencias de performance temporal de las implementaciones en cuanto al filtro \textit{Blur} fueron importantes, aunque no tanto como lo fueron para el filtro \textit{Diff}. La hipótesis, una vez más, fue incorrecta. El filtro implementado en lenguaje ensamblador nuevamente superó con gran amplitud al implementado en C, ejecutándose alrededor de 9 veces mas rápido. \\
+
 \begin{center}
 \begin{tikzpicture}
   \begin{axis}[title  ={ Figura 3 - Cantidad de clocks (toda la imagen), filtro Blur},
@@ -541,6 +542,7 @@ Los resultados que obtuvimos fueron los esperados. Este nivel de optimización r
 En la figura 6 podemos ver que, al considerar el tiempo por pixel, la imagen más chica se procesa más rapido. Esto probablemente se deba a que entra mejor en la caché del microprocesador al ser mas pequeña. \\
 
 Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor tiempo necesita para completarse, siendo así un mejor candidato para resaltar las diferencias de performance temporal. \\
+
 \begin{center}
 \begin{tikzpicture}
   \begin{axis}[title  ={ Figura 5 - Cantidad de clocks (toda la imagen), filtro Blur},
@@ -607,6 +609,43 @@ Elegimos el filtro \textit{Blur} para este experimento porque es el que mayor ti
     (3124,800 x 600)
   };
   \legend{C, C -O3, ASM}
+  \end{axis}
+\end{tikzpicture}
+\end{center}
+
+\subsection{Recorrido traspuesto}
+
+En este experimento corrimos las dos implementaciones en C del filtro \textit{Diff} 50 veces cada una, pasándoles como parametros un par de imágenes de tamaño 3840 x 2160. \\
+
+\textit{Hipótesis:} La forma en la que se almacena y se vacía la memoria caché se ve afecatada por la forma en que recorramos la imagen, ya que al hacer un recorrido contiguo en memoria, equivalente a recorrer la imagen horizontalmente, tendrá un mayor hitrate que si la recorremos verticalmente, ya que al no ser contiguas se deberán leer de memoria varios bloques que puedan no encontrarse almacenados. Esto representaría una baja en la performance temporal del algoritmo debido a la mayor cantidad de accesos a memoria. \\
+
+Los datos obtenidos son los siguientes: \\
+
+\begin{center}
+\begin{tikzpicture}
+  \begin{axis}[title  ={ Figura 7 - Cantidad de clocks (toda la imagen), filtro diff - trasponiendo el recorrido},
+    xbar,
+    y axis line style = { opacity = 0 },
+    axis x line       = none,
+    tickwidth         = 0pt,
+    enlarge y limits  = 0.2,
+    enlarge x limits  = 0.02,
+    symbolic y coords = {120 x 120, 640 x 400, 1000 x 1000, 3840 x 2160},
+    nodes near coords,
+  ]
+  \addplot coordinates {
+    (510998,120 x 120)
+    (17536850,640 x 400)
+    (123,1000 x 1000)
+    (287030464,3840 x 2160)
+  };
+  \addplot coordinates {
+    (505373,120 x 120)
+    (18993430,640 x 400)
+    (123,1000 x 1000)
+    (1707710848,3840 x 2160)
+  };
+  \legend{Normal, Traspuesto}
   \end{axis}
 \end{tikzpicture}
 \end{center}

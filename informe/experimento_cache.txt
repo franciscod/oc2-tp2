@@ -1,7 +1,14 @@
-Blur ASM
-normal 		: 22233978880
-traspuesto 	: 23040937984
+emerald
 
-Diff C
 normal 		: 287030464
 traspuesto 	: 1707710848
+
+molino
+
+normal		: 510998
+traspuesto	: 505373
+
+circulos 
+
+normal		: 17536850
+traspuesto	: 18993430
