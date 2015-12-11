@@ -517,11 +517,15 @@ Las diferencias de performance temporal de las implementaciones en cuanto al fil
 \end{tikzpicture}
 \end{center}
 
-\subsection{Diferencias de precision en Blur}
+\subsection{Diferencias de precision entre Blur de C y ASM}
 
 Una vez más comparamos las imágenes de salida generadas por ambas implementaciones y esta vez sí obtuvimos diferencias. Si bien eran casi imperceptibles para el ojo humano, en cada imagen encontramos muchos pares de pixeles que diferían entre sí por un valor de 1 en alguna componente del color.
 
+Investigamos de donde provenian esas discrepancias. En SIMD usabamos las funciones de conversion y la funcion de producto interno DPPS. En ningun momento creiamos perder precision por el tamaño de los datos, así que intuimos que el problema surgía de algun redondeo. La cantidad de diferencias absolutas menores a 4 lo fueron confirmando. En C estabamos casteando los float a int, y leimos acerca del tema y al hacer ese cast se trunca la parte fraccionaria del float. SIMD, en cambio, por defecto redondea al entero mas cercano.\\
 
+Entonces teníamos dos opciones: usar las instrucciones que modifican el registro MXCSR, que contiene flags que ademas de controlar el modo de redondeo enmascaran excepciones que puedan surgir de operaciones de floats; o llamar a roundf() del lado de C para imitar el redondeo al entero mas cercano que tenía SIMD. Hicimos la segunda. \\
+
+Desafortunadamente no pudimos llegar a hacer desaparecer todas las diferencias que surgian, pero los valores alcanzados superaban muchisimo a los obtenidos antes de corregir el redondeo. \\
 
 
 \subsection{Optimización O3 para la implementación en C}
