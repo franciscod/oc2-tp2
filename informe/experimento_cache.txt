@@ -12,3 +12,8 @@ circulos
 
 normal		: 17536850
 traspuesto	: 18993430
+
+milpormil
+
+normal 		: 37477096
+traspuesto 	: 162073600
