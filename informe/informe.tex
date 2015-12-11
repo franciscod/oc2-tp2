@@ -216,13 +216,13 @@ movups [r9], xmm1       ; r9 = puntero a imagen destino
 
 Los bordes de la imagen no se veran afectados por el filtro ya que en esas posiciones de la imagen no se puede tomar la cantidad de vecinos necesaria. \\
 
-El filtro toma además de la imagen otros 2 parámetros de entrada: sigma y radio. \\
+El filtro toma además de la imagen otros 2 parámetros de entrada: $ \sigma $ y radio. \\
 
-El parámetro sigma determina cuánto se suaviza la imagen, ya que es el valor que modifica, a través de la función Gaussiana, el contenido de la matriz utilizada para la convolución. Dado que dicha función integra a 1, decimos que esta convolución es un promedio ponderado; esto garantiza que el brillo de la imagen no se altera.\\
+El parámetro $ \sigma $ determina cuánto se suaviza la imagen, ya que es el valor que modifica, a través de la función Gaussiana, el contenido de la matriz utilizada para la convolución. Dado que dicha función integra a 1, decimos que esta convolución es un promedio ponderado; esto garantiza que el brillo de la imagen no se altera.\\
 
 El radio representa la distancia desde el pixel hasta su último vecino. En otras palabras, determina el tamaño de los lados de la matriz (es una matriz cuadrada): 2 * radio + 1. \\
 
-Esta es la imagen que genera el filtro para la imagen lena24.bmp con parametro sigma = 5 y r = 15 \\
+Esta es la imagen que genera el filtro para la imagen lena24.bmp con parametro $ \sigma $ = 5 y r = 15 \\
 
 \begin{center}\includegraphics[keepaspectratio]{blur_lena24_5_15.png}\end{center}
 
